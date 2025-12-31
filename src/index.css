@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+@layer base {
+  html, body {
+    margin: 0;
+    padding: 0;
+    /* Updated to the darker, classy shade */
+    background-color: #F7F3EE; 
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    color: #5A5E73;
+  }
+
+  h1, h2, h3 {
+    font-family: 'DM Serif Display', serif;
+    font-weight: 400; /* Classy serif is usually lighter weight */
+  }
+}
+
+/* Custom Floating Animation for Squircel icons */
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-15px) rotate(2deg); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
