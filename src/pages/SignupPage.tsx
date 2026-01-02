@@ -27,7 +27,7 @@ const SignupPage: React.FC = () => {
       return;
     }
 
-    const { data, error: authError } = await supabase.auth.signUp({
+    const { error: authError } = await supabase.auth.signUp({
       email: formData.email,
       password: formData.pwd,
       options: {
@@ -57,11 +57,11 @@ const SignupPage: React.FC = () => {
     <div className="min-h-screen w-full flex flex-col md:flex-row bg-white relative">
       <Helmet><title>Create Account | DatingAdvice.io</title></Helmet>
 
-      <div className="hidden md:flex flex-1 items-center justify-center p-12 shadow-2xl" 
-           style={{ background: 'linear-gradient(135deg, #FF9A9E 0%, #FAD0C4 50%, #F7F3EE 100%)' }}>
+      <div className="hidden md:flex flex-1 items-center justify-center p-12 shadow-2xl"
+        style={{ background: 'linear-gradient(135deg, #FF9A9E 0%, #FAD0C4 50%, #F7F3EE 100%)' }}>
         <div className="text-center max-w-sm">
           <div className="w-24 h-24 bg-white/40 backdrop-blur-xl rounded-[40px] shadow-2xl flex items-center justify-center mx-auto mb-10 border border-white/50">
-             <span className="text-5xl" style={{ color: brandColor }}>♥</span>
+            <span className="text-5xl" style={{ color: brandColor }}>♥</span>
           </div>
           <h2 className="text-5xl font-bold mb-6 leading-tight" style={{ fontFamily: 'DM Serif Display', color: navyColor }}>Start Your Love Journey</h2>
         </div>
@@ -73,7 +73,7 @@ const SignupPage: React.FC = () => {
           <h1 className="text-4xl font-bold mb-2" style={{ fontFamily: 'DM Serif Display', color: navyColor }}>Create account</h1>
           <p className="text-sm opacity-50 mb-8">Start your journey to better relationships</p>
 
-          <button 
+          <button
             type="button"
             onClick={handleGoogleLogin}
             className="w-full py-4 border-2 rounded-xl flex items-center justify-center gap-3 font-bold transition-all duration-300 group mb-8"
@@ -81,25 +81,25 @@ const SignupPage: React.FC = () => {
             onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = brandColor; e.currentTarget.style.color = 'white'; }}
             onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = brandColor; }}
           >
-            <span className="bg-white text-[#E94057] w-6 h-6 rounded-full flex items-center justify-center text-xs font-black transition-transform group-hover:scale-110">G</span> 
+            <span className="bg-white text-[#E94057] w-6 h-6 rounded-full flex items-center justify-center text-xs font-black transition-transform group-hover:scale-110">G</span>
             Continue with Google
           </button>
 
           <form className="space-y-4" onSubmit={handleSignup}>
-            <input type="text" placeholder="Full Name" required className="w-full px-5 py-4 rounded-xl bg-gray-50 outline-none focus:ring-1 focus:ring-[#E94057]/20 transition-all text-[#12172D]" 
-                   onChange={(e) => setFormData({...formData, name: e.target.value})} />
+            <input type="text" placeholder="Full Name" required className="w-full px-5 py-4 rounded-xl bg-gray-50 outline-none focus:ring-1 focus:ring-[#E94057]/20 transition-all text-[#12172D]"
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
             <input type="email" placeholder="Email Address" required className="w-full px-5 py-4 rounded-xl bg-gray-50 outline-none focus:ring-1 focus:ring-[#E94057]/20 transition-all text-[#12172D]"
-                   onChange={(e) => setFormData({...formData, email: e.target.value})} />
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
             <div className="relative">
-              <input type={showPwd ? "text" : "password"} placeholder="Password (Min. 8 chars)" required 
-                     className="w-full px-5 py-4 rounded-xl bg-gray-50 outline-none focus:ring-1 focus:ring-[#E94057]/20 transition-all text-[#12172D]"
-                     onChange={(e) => setFormData({...formData, pwd: e.target.value})} />
+              <input type={showPwd ? "text" : "password"} placeholder="Password (Min. 8 chars)" required
+                className="w-full px-5 py-4 rounded-xl bg-gray-50 outline-none focus:ring-1 focus:ring-[#E94057]/20 transition-all text-[#12172D]"
+                onChange={(e) => setFormData({ ...formData, pwd: e.target.value })} />
               <button type="button" onClick={() => setShowPwd(!showPwd)} className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black uppercase tracking-widest" style={{ color: brandColor }}>
                 {showPwd ? "Hide" : "Show"}
               </button>
             </div>
             <input type="password" placeholder="Confirm Password" required className="w-full px-5 py-4 rounded-xl bg-gray-50 outline-none focus:ring-1 focus:ring-[#E94057]/20 transition-all text-[#12172D]"
-                   onChange={(e) => setFormData({...formData, confirm: e.target.value})} />
+              onChange={(e) => setFormData({ ...formData, confirm: e.target.value })} />
 
             {error && <p className="text-xs font-bold text-red-500 mt-1">{error}</p>}
 

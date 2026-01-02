@@ -12,9 +12,9 @@ const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
   const [usage, setUsage] = useState<any>(null); // New state for credit tracking
-  const [advisors, setAdvisors] = useState<any[]>([]); 
+  const [advisors, setAdvisors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   // States for Discovery Logic
   const [isDiscoveryOpen, setIsDiscoveryOpen] = useState(false);
   const [showAnalysis, setShowAnalysis] = useState(false);
@@ -24,11 +24,11 @@ const DashboardPage: React.FC = () => {
 
     const fetchData = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { 
-        navigate('/login'); 
-        return; 
+      if (!session) {
+        navigate('/login');
+        return;
       }
-      
+
       // Fetch User, Usage, & Advisors in one shot
       const [profileRes, usageRes, advisorsRes] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', session.user.id).single(),
@@ -69,18 +69,18 @@ const DashboardPage: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen" style={{ backgroundColor: themeData.colors.bgSoft }}>
       <Helmet><title>Dashboard | DatingAdvice.io</title></Helmet>
-      
+
       <Header />
 
       <main className="flex-grow pt-24 pb-12 animate-in fade-in slide-in-from-top-4 duration-700">
-        
+
         {/* WELCOME SECTION */}
         <section className="px-6 md:px-12 lg:px-24 mb-10">
           <div className="relative overflow-hidden rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-12 text-white shadow-2xl"
-               style={{ backgroundColor: themeData.colors.textHeading }}>
-            
-            <div className="absolute top-[-15%] right-[-10%] w-72 h-72 opacity-25 blur-[100px] animate-pulse" 
-                 style={{ backgroundColor: themeData.colors.brand }}></div>
+            style={{ backgroundColor: themeData.colors.textHeading }}>
+
+            <div className="absolute top-[-15%] right-[-10%] w-72 h-72 opacity-25 blur-[100px] animate-pulse"
+              style={{ backgroundColor: themeData.colors.brand }}></div>
             <div className="absolute bottom-[-15%] left-[-10%] w-64 h-64 bg-blue-600 opacity-15 blur-[100px]"></div>
 
             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
@@ -95,8 +95,8 @@ const DashboardPage: React.FC = () => {
                   Your relationship growth is our priority. Let's find your perfect match in strategy today.
                 </p>
               </div>
-              
-              <button 
+
+              <button
                 onClick={() => profile?.persona_analysis ? setShowAnalysis(!showAnalysis) : setIsDiscoveryOpen(true)}
                 className="px-8 py-4 bg-white font-bold rounded-2xl hover:scale-105 transition-all shadow-xl flex items-center gap-3"
                 style={{ color: themeData.colors.textHeading }}>
@@ -147,27 +147,27 @@ const DashboardPage: React.FC = () => {
             {advisors.map((advisor) => (
               <div key={advisor.id} className="group bg-white rounded-[2rem] p-5 md:p-8 border border-gray-50 shadow-sm hover:shadow-md transition-all flex flex-col items-center">
                 <div className="relative mb-5">
-                  <img src={advisor.image_url} alt={advisor.name} 
-                       className="w-20 h-20 md:w-24 md:h-24 rounded-[1.5rem] md:rounded-[2rem] object-cover shadow-sm transition-transform group-hover:scale-105" />
+                  <img src={advisor.image_url} alt={advisor.name}
+                    className="w-20 h-20 md:w-24 md:h-24 rounded-[1.5rem] md:rounded-[2rem] object-cover shadow-sm transition-transform group-hover:scale-105" />
                   {advisor.is_online && <div className="absolute bottom-0.5 right-0.5 w-4 h-4 bg-green-500 border-2 border-white rounded-full shadow-sm" />}
                 </div>
 
                 <div className="flex items-center gap-1 text-yellow-500 text-[10px] mb-1 px-2 py-0.5 bg-yellow-50 rounded-full">
                   <Star size={10} fill="currentColor" /> {advisor.rating}
                 </div>
-                
+
                 <h4 className="text-sm md:text-xl font-bold mb-0.5 text-center" style={{ fontFamily: 'DM Serif Display', color: themeData.colors.textHeading }}>{advisor.name}</h4>
                 <p className="text-[9px] md:text-[11px] uppercase font-bold opacity-30 tracking-wide mb-6 text-center">{advisor.specialty}</p>
-                
+
                 <div className="flex gap-2 w-full mt-auto">
-                  <button 
+                  <button
                     onClick={() => handleDivert(advisor.id, 'chat')}
-                    className="flex-1 h-10 md:h-12 bg-gray-50 rounded-xl flex items-center justify-center hover:bg-black hover:text-white transition-all shadow-inner">
+                    className="flex-1 h-10 md:h-12 bg-gray-50 rounded-xl flex items-center justify-center hover:bg-black hover:text-white transition-all shadow-inner cursor-pointer">
                     <MessageSquare size={16} />
                   </button>
-                  <button 
+                  <button
                     onClick={() => handleDivert(advisor.id, 'voice')}
-                    className="flex-1 h-10 md:h-12 rounded-xl text-white flex items-center justify-center transition-all shadow-md hover:brightness-110 active:scale-95" 
+                    className="flex-1 h-10 md:h-12 rounded-xl text-white flex items-center justify-center transition-all shadow-md hover:brightness-110 active:scale-95 cursor-pointer"
                     style={{ backgroundColor: themeData.colors.brand }}>
                     <Phone size={16} />
                   </button>
@@ -179,10 +179,10 @@ const DashboardPage: React.FC = () => {
       </main>
 
       {/* DISCOVERY FORM MODAL */}
-      <DiscoveryForm 
-        isOpen={isDiscoveryOpen} 
-        onClose={() => setIsDiscoveryOpen(false)} 
-        userId={profile?.id} 
+      <DiscoveryForm
+        isOpen={isDiscoveryOpen}
+        onClose={() => setIsDiscoveryOpen(false)}
+        userId={profile?.id}
       />
 
       <Footer />

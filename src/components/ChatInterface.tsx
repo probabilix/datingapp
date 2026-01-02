@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { themeData } from '../data/themeData';
 import { Send, Phone, ChevronLeft, Sparkles } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
@@ -17,7 +17,7 @@ const ChatInterface = ({ advisor, onClose }: any) => {
 
   const handleSendMessage = async () => {
     if (!input.trim()) return;
-    
+
     const userMsg = { role: 'user', content: input };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
@@ -32,7 +32,7 @@ const ChatInterface = ({ advisor, onClose }: any) => {
           message: input,
           agentId: advisor.id,
           userId: (await supabase.auth.getUser()).data.user?.id,
-          personaContext: advisor.specialty 
+          personaContext: advisor.specialty
         })
       });
 
@@ -70,9 +70,8 @@ const ChatInterface = ({ advisor, onClose }: any) => {
       <div className="flex-1 overflow-y-auto p-8 space-y-8 bg-[#FAFAFA] no-scrollbar">
         {messages.map((m, i) => (
           <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2`}>
-            <div className={`max-w-[85%] p-6 rounded-[2.5rem] text-[15px] leading-relaxed shadow-sm ${
-              m.role === 'user' ? 'bg-black text-white rounded-tr-none' : 'bg-white text-gray-800 rounded-tl-none border border-gray-50'
-            }`}>
+            <div className={`max-w-[85%] p-6 rounded-[2.5rem] text-[15px] leading-relaxed shadow-sm ${m.role === 'user' ? 'bg-black text-white rounded-tr-none' : 'bg-white text-gray-800 rounded-tl-none border border-gray-50'
+              }`}>
               {m.content}
             </div>
           </div>
@@ -92,7 +91,7 @@ const ChatInterface = ({ advisor, onClose }: any) => {
       {/* Input Section */}
       <div className="p-8 bg-white">
         <div className="flex items-center gap-3 bg-gray-50 p-2.5 rounded-[2.5rem] border border-gray-100 focus-within:border-black transition-all">
-          <input 
+          <input
             className="flex-1 bg-transparent px-5 py-3 outline-none text-sm font-medium"
             placeholder="Ask anything..."
             value={input}

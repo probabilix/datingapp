@@ -1,11 +1,31 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabaseClient';
 import { themeData } from '../data/themeData';
 
 const HeroSection: React.FC = () => {
+  const navigate = useNavigate();
+
+  const handleStartJourney = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      navigate('/dashboard');
+    } else {
+      navigate('/login');
+    }
+  };
+
+  const handleHowItWorks = () => {
+    const element = document.getElementById('how-it-works');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     // Change the opening <section> tag to this:
-      <section className="relative w-full h-auto flex flex-col items-center justify-start pt-42 pb-20 px-6 overflow-hidden">
-      
+    <section className="relative w-full h-auto flex flex-col items-center justify-start pt-42 pb-20 px-6 overflow-hidden">
+
       {/* 1. Background Ambient Glows - Darker and more saturated */}
       <div className="absolute top-0 left-0 w-full h-full -z-10 overflow-hidden">
         <div className="absolute top-[-5%] left-[-5%] w-[50%] h-[50%] rounded-full blur-[130px] opacity-50 bg-[#fde2e4]" />
@@ -31,9 +51,9 @@ const HeroSection: React.FC = () => {
 
       {/* 3. Main Content Wrapper */}
       <div className="max-w-[1250px] w-full text-center z-10 flex flex-col items-center">
-        
+
         {/* Badge - Exact Border and Fill */}
-        <div 
+        <div
           className="inline-flex items-center px-5 py-2 rounded-full text-[11px] font-bold tracking-[0.12em] mb-6 border border-[#fbc4c4] bg-[#fff0f0]"
           style={{ color: themeData.colors.brand }}
         >
@@ -41,7 +61,7 @@ const HeroSection: React.FC = () => {
         </div>
 
         {/* Heading - Tight Leading (1.02) and Letter Spacing */}
-        <h1 
+        <h1
           className="text-5xl md:text-[74px] font-bold leading-[1.02] tracking-[+0.01em] mb-6"
           style={{ color: themeData.colors.textHeading }}
         >
@@ -52,24 +72,26 @@ const HeroSection: React.FC = () => {
         </h1>
 
         {/* Paragraph - Spacing matches the heading width exactly */}
-        <p 
-          className="text-lg md:text-[20px] max-w-[660px] leading-[1.6] mb-6 text-[#5a5e73]" 
+        <p
+          className="text-lg md:text-[20px] max-w-[660px] leading-[1.6] mb-6 text-[#5a5e73]"
         >
-          Get personalized dating advice from 12 expert AI advisors. Voice 
+          Get personalized dating advice from 12 expert AI advisors. Voice
           conversations, instant chat support, and tailored guidance for your unique journey.
         </p>
 
         {/* Action Buttons - Squircel Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-5 mb-8">
-          <button 
-            className="w-full sm:w-auto px-10 py-4.5 rounded-[1.2rem] text-white font-bold text-[17px] shadow-2xl transition-all hover:scale-[1.02] active:scale-[0.98]" 
+          <button
+            onClick={handleStartJourney}
+            className="w-full sm:w-auto px-10 py-4.5 rounded-[1.2rem] text-white font-bold text-[17px] shadow-2xl transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
             style={{ backgroundColor: themeData.colors.brand }}
           >
             Start Your Journey →
           </button>
-          
-          <button 
-            className="w-full sm:w-auto px-10 py-4.5 rounded-[1.2rem] border-2 font-bold text-[17px] bg-white/40 backdrop-blur-sm transition-all hover:bg-white" 
+
+          <button
+            onClick={handleHowItWorks}
+            className="w-full sm:w-auto px-10 py-4.5 rounded-[1.2rem] border-2 font-bold text-[17px] bg-white/40 backdrop-blur-sm transition-all hover:bg-white cursor-pointer"
             style={{ borderColor: themeData.colors.brand, color: themeData.colors.brand }}
           >
             See How It Works
