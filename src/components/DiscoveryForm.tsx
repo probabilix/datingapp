@@ -48,7 +48,6 @@ const DiscoveryForm: React.FC<DiscoveryFormProps> = ({ isOpen, onClose, userId }
     setIsSubmitting(true);
 
     try {
-      // 1. Fetch Setting from DB
       const { data: setting, error: dbError } = await supabase
         .from('system_settings')
         .select('key_value')
@@ -61,12 +60,9 @@ const DiscoveryForm: React.FC<DiscoveryFormProps> = ({ isOpen, onClose, userId }
         return;
       }
 
-      console.log("Diverting to Webhook:", setting.key_value);
-
-      // 2. POST to n8n with strict JSON headers
       const response = await fetch(setting.key_value, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
@@ -74,8 +70,11 @@ const DiscoveryForm: React.FC<DiscoveryFormProps> = ({ isOpen, onClose, userId }
       });
 
       if (response.ok) {
+        // --- ADDED THIS LINE TO LOCK THE FORM ---
+        localStorage.setItem('discovery_pending', 'true');
+
         onClose();
-        window.location.reload(); 
+        window.location.reload();
       } else {
         const errorText = await response.text();
         console.error("n8n Error Response:", errorText);
@@ -96,7 +95,7 @@ const DiscoveryForm: React.FC<DiscoveryFormProps> = ({ isOpen, onClose, userId }
         <button onClick={onClose} className="absolute top-6 right-6 p-2 text-gray-300 hover:text-black">
           <X size={24} />
         </button>
-        
+
         <div className="flex gap-2 mb-10">
           {questions.map(q => (
             <div key={q.id} className={`h-1.5 flex-1 rounded-full ${currentStep >= q.step_number ? 'bg-[#E94057]' : 'bg-gray-100'}`} />
@@ -112,8 +111,8 @@ const DiscoveryForm: React.FC<DiscoveryFormProps> = ({ isOpen, onClose, userId }
 
         <div className="space-y-3">
           {currentQuestion?.options.map((opt: string) => (
-            <button 
-              key={opt} 
+            <button
+              key={opt}
               onClick={() => handleOptionClick(opt)}
               className={`w-full p-5 text-left rounded-2xl border-2 transition-all font-bold text-sm flex justify-between items-center group
                 ${answers[currentQuestion.category] === opt ? 'border-black bg-gray-50' : 'border-gray-50 hover:border-gray-200'}`}
@@ -126,8 +125,8 @@ const DiscoveryForm: React.FC<DiscoveryFormProps> = ({ isOpen, onClose, userId }
         <div className="mt-12 flex items-center justify-between">
           <button onClick={onClose} className="text-xs font-black uppercase opacity-30 hover:opacity-100">Skip</button>
           {currentStep === totalSteps && answers[currentQuestion?.category] && (
-            <button 
-              onClick={handleSubmit} 
+            <button
+              onClick={handleSubmit}
               disabled={isSubmitting}
               className="px-10 py-5 bg-black text-white rounded-[2rem] font-bold flex items-center gap-3 shadow-xl disabled:opacity-50"
             >

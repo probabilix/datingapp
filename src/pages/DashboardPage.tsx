@@ -11,11 +11,10 @@ import DiscoveryForm from '../components/DiscoveryForm';
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
-  const [usage, setUsage] = useState<any>(null); // New state for credit tracking
+  const [usage, setUsage] = useState<any>(null);
   const [advisors, setAdvisors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // States for Discovery Logic
   const [isDiscoveryOpen, setIsDiscoveryOpen] = useState(false);
   const [showAnalysis, setShowAnalysis] = useState(false);
 
@@ -29,14 +28,19 @@ const DashboardPage: React.FC = () => {
         return;
       }
 
-      // Fetch User, Usage, & Advisors in one shot
       const [profileRes, usageRes, advisorsRes] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', session.user.id).single(),
         supabase.from('user_usage').select('*').eq('user_id', session.user.id).single(),
         supabase.from('advisors').select('*').order('id', { ascending: true })
       ]);
 
-      if (profileRes.data) setProfile(profileRes.data);
+      if (profileRes.data) {
+        setProfile(profileRes.data);
+        // CRITICAL: If analysis arrived, clear the local storage lock
+        if (profileRes.data.persona_analysis && Object.keys(profileRes.data.persona_analysis).length > 0) {
+          localStorage.removeItem('discovery_pending');
+        }
+      }
       if (usageRes.data) setUsage(usageRes.data);
       if (advisorsRes.data) setAdvisors(advisorsRes.data);
       setLoading(false);
@@ -44,10 +48,13 @@ const DashboardPage: React.FC = () => {
     fetchData();
   }, [navigate]);
 
-  // Trigger form only after profile is fully loaded
   useEffect(() => {
     if (!loading && profile) {
-      if (!profile.persona_analysis || Object.keys(profile.persona_analysis).length === 0) {
+      const hasAnalysis = profile.persona_analysis && Object.keys(profile.persona_analysis).length > 0;
+      const isPending = localStorage.getItem('discovery_pending') === 'true';
+
+      // Only open discovery if they don't have an analysis AND haven't just submitted one
+      if (!hasAnalysis && !isPending) {
         setIsDiscoveryOpen(true);
       }
     }
@@ -74,7 +81,6 @@ const DashboardPage: React.FC = () => {
 
       <main className="flex-grow pt-24 pb-12 animate-in fade-in slide-in-from-top-4 duration-700">
 
-        {/* WELCOME SECTION */}
         <section className="px-6 md:px-12 lg:px-24 mb-10">
           <div className="relative overflow-hidden rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-12 text-white shadow-2xl"
             style={{ backgroundColor: themeData.colors.textHeading }}>
@@ -96,15 +102,21 @@ const DashboardPage: React.FC = () => {
                 </p>
               </div>
 
-              <button
-                onClick={() => profile?.persona_analysis ? setShowAnalysis(!showAnalysis) : setIsDiscoveryOpen(true)}
-                className="px-8 py-4 bg-white font-bold rounded-2xl hover:scale-105 transition-all shadow-xl flex items-center gap-3"
-                style={{ color: themeData.colors.textHeading }}>
-                {profile?.persona_analysis ? 'View My Analysis' : 'Launch Analysis'} <Zap size={16} fill="currentColor" />
-              </button>
+              {/* Updated Logic: Show 'Processing' if lock is active */}
+              {localStorage.getItem('discovery_pending') === 'true' && !profile?.persona_analysis ? (
+                <div className="px-8 py-4 bg-white/10 border border-white/20 rounded-2xl flex items-center gap-3 italic text-sm text-white/60">
+                  <Clock size={16} className="animate-spin" /> Analyzing your persona...
+                </div>
+              ) : (
+                <button
+                  onClick={() => profile?.persona_analysis ? setShowAnalysis(!showAnalysis) : setIsDiscoveryOpen(true)}
+                  className="px-8 py-4 bg-white font-bold rounded-2xl hover:scale-105 transition-all shadow-xl flex items-center gap-3"
+                  style={{ color: themeData.colors.textHeading }}>
+                  {profile?.persona_analysis ? 'View My Analysis' : 'Launch Analysis'} <Zap size={16} fill="currentColor" />
+                </button>
+              )}
             </div>
 
-            {/* AI PERSONA ANALYSIS CARD */}
             {showAnalysis && profile?.persona_analysis && (
               <div className="relative z-10 mt-8 p-6 md:p-8 bg-white/10 backdrop-blur-lg rounded-[2.5rem] border border-white/10 animate-in slide-in-from-top-4 duration-500">
                 <div className="flex items-center gap-3 mb-4">
@@ -127,7 +139,6 @@ const DashboardPage: React.FC = () => {
           </div>
         </section>
 
-        {/* METRICS - Mapped to user_usage table columns */}
         <section className="px-6 md:px-12 lg:px-24 mb-12">
           <div className="flex overflow-x-auto md:grid md:grid-cols-3 gap-6 no-scrollbar pb-2 md:pb-0">
             <StatCard icon={<Clock size={22} />} title="Voice Time" value={`${usage?.voice_minutes_left || 0}m`} color="bg-blue-500" />
@@ -136,11 +147,10 @@ const DashboardPage: React.FC = () => {
           </div>
         </section>
 
-        {/* ADVISOR GRID */}
         <section className="px-6 md:px-12 lg:px-24">
           <div className="flex items-center justify-between mb-8">
             <h3 className="text-2xl font-bold" style={{ fontFamily: 'DM Serif Display', color: themeData.colors.textHeading }}>Expert Advisors</h3>
-            <button className="text-[11px] font-black uppercase tracking-widest" style={{ color: themeData.colors.brand }}>Refresh List</button>
+            {/* REMOVED REFRESH BUTTON */}
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
@@ -178,7 +188,6 @@ const DashboardPage: React.FC = () => {
         </section>
       </main>
 
-      {/* DISCOVERY FORM MODAL */}
       <DiscoveryForm
         isOpen={isDiscoveryOpen}
         onClose={() => setIsDiscoveryOpen(false)}

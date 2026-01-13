@@ -16,20 +16,22 @@ import Footer from './components/Footer';
 // Page Imports
 import AboutPage from './pages/AboutPage';
 import BlogsPage from './pages/BlogsPage';
+import BlogPostPage from './pages/BlogPostPage';
+import SuccessStoriesPage from './pages/SuccessStoriesPage';
 import CareersPage from './pages/CareersPage';
 import ContactPage from './pages/ContactPage';
 import CookiesPage from './pages/CookiesPage';
 import PrivacyPage from './pages/PrivacyPage';
-import SuccessStoriesPage from './pages/SuccessStoriesPage';
+
 import TermsPage from './pages/termsPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import DashboardPage from './pages/DashboardPage';
-import BillingPage from './pages/BillingPage'; 
-import CheckoutPage from './pages/CheckoutPage'; 
-import ConsultationPage from './pages/ConsultationPage'; 
+import BillingPage from './pages/BillingPage';
+import CheckoutPage from './pages/CheckoutPage';
+import ConsultationPage from './pages/ConsultationPage';
 
 import { themeData } from './data/themeData';
 
@@ -45,7 +47,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     });
   }, []);
 
-  if (loading) return null; 
+  if (loading) return null;
   return session ? <>{children}</> : <Navigate to="/login" replace />;
 };
 
@@ -66,7 +68,7 @@ const App: React.FC = () => {
       else setShowButton(false);
     };
     window.addEventListener('scroll', handleScrollTransition);
-    
+
     if (window.location.hash.includes('access_token')) {
       window.history.replaceState(null, '', window.location.pathname);
     }
@@ -109,11 +111,13 @@ const App: React.FC = () => {
 
             <Route path="/about" element={<AboutPage />} />
             <Route path="/blogs" element={<BlogsPage />} />
+            <Route path="/blog/:slug" element={<BlogPostPage />} />
+            <Route path="/success-stories" element={<SuccessStoriesPage />} />
             <Route path="/careers" element={<CareersPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/cookies" element={<CookiesPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
-            <Route path="/success-stories" element={<SuccessStoriesPage />} />
+
             <Route path="/terms" element={<TermsPage />} />
           </Routes>
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
+import ReactMarkdown from 'react-markdown';
 import { themeData } from '../data/themeData';
 import { signupLegalContent } from '../data/signupLegalContent';
 import { supabase } from '../lib/supabaseClient';
@@ -130,8 +131,8 @@ const SignupPage: React.FC = () => {
               <h3 className="text-2xl font-bold" style={{ fontFamily: 'DM Serif Display', color: navyColor }}>{signupLegalContent.title}</h3>
               <button onClick={() => setShowModal(false)} className="text-xl opacity-20 hover:opacity-100 transition-opacity">✕</button>
             </div>
-            <div className="p-8 overflow-y-auto text-sm leading-relaxed text-gray-500 whitespace-pre-line bg-[#FCFAFA]">
-              {signupLegalContent.content}
+            <div className="p-8 overflow-y-auto text-sm leading-relaxed text-gray-500 bg-[#FCFAFA] prose prose-sm max-w-none">
+              <ReactMarkdown>{signupLegalContent.content}</ReactMarkdown>
             </div>
             <div className="p-6 bg-white border-t border-gray-100">
               <button onClick={() => { setAgreed(true); setShowModal(false); }} className="w-full py-4 rounded-xl text-white font-bold transition-all hover:brightness-110" style={{ backgroundColor: brandColor }}>

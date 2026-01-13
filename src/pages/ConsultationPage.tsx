@@ -217,12 +217,17 @@ const ConsultationPage: React.FC = () => {
     fetchChatHistory();
   }, [selectedAdvisor]);
 
+  // SCROLL LOGIC - Updated with 'mode' to fix Voice-to-Chat scroll
   useEffect(() => {
-    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isTyping]);
+    if (mode === "chat") {
+      setTimeout(() => {
+        scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    }
+  }, [messages, isTyping, mode]);
 
   const handleSendMessage = async () => {
-    if (!input.trim() || !selectedAdvisor) return;
+    if (!input.trim() || !selectedAdvisor || isTyping) return;
     const totalCredits = (usage?.messages_left || 0) + (usage?.custom_messages_balance || 0);
     if (totalCredits <= 0) {
       setShowBillingModal(true);
@@ -247,11 +252,15 @@ const ConsultationPage: React.FC = () => {
       });
       const aiResponse = await res.json();
       setMessages((prev) => [...prev, { role: "ai", content: aiResponse?.output || "..." }]);
+      setIsTyping(false); // Stop typing immediately after message is received
+
       const { data: updatedUsage } = await supabase.from("user_usage").select("*").eq("user_id", session?.user?.id).single();
       setUsage(updatedUsage);
     } catch (err) {
       setMessages((prev) => [...prev, { role: "ai", content: "⚠️ Connection error." }]);
-    } finally { setIsTyping(false); }
+      setIsTyping(false);
+    }
+    // finally block removed as we handle state explicitly above for better timing
   };
 
   const formatTime = (seconds: number) => {
@@ -374,8 +383,20 @@ const ConsultationPage: React.FC = () => {
           {mode === "chat" && (
             <footer className="p-6 md:p-10 bg-white">
               <div className="max-w-4xl mx-auto flex items-center gap-3 bg-gray-50 p-2 rounded-[2.5rem] border border-gray-100 focus-within:border-black transition-all">
-                <input className="flex-1 bg-transparent px-6 py-4 outline-none text-sm font-medium" placeholder={`Consult with ${selectedAdvisor?.name}...`} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSendMessage()} />
-                <button onClick={handleSendMessage} className="w-14 h-14 rounded-full bg-[#E94057] text-white flex items-center justify-center shadow-xl hover:brightness-110 active:scale-95 cursor-pointer"><Send size={20} /></button>
+                <input
+                  className={`flex-1 bg-transparent px-6 py-4 outline-none text-sm font-medium`}
+                  placeholder={isTyping ? "Advisor is thinking..." : `Consult with ${selectedAdvisor?.name}...`}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && !isTyping && handleSendMessage()}
+                />
+                <button
+                  onClick={handleSendMessage}
+                  disabled={isTyping}
+                  className={`w-14 h-14 rounded-full flex items-center justify-center shadow-xl transition-all ${isTyping ? 'bg-gray-300 cursor-not-allowed' : 'bg-[#E94057] hover:brightness-110 active:scale-95 cursor-pointer'}`}
+                >
+                  {isTyping ? <Clock size={20} className="animate-spin text-white" /> : <Send size={20} className="text-white" />}
+                </button>
               </div>
             </footer>
           )}
