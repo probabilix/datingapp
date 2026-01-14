@@ -69,9 +69,7 @@ const App: React.FC = () => {
     };
     window.addEventListener('scroll', handleScrollTransition);
 
-    if (window.location.hash.includes('access_token')) {
-      window.history.replaceState(null, '', window.location.pathname);
-    }
+    // Removed conflicting hash clearing to allow Supabase to handle the session extraction
 
     return () => window.removeEventListener('scroll', handleScrollTransition);
   }, []);

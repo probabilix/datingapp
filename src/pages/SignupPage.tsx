@@ -39,6 +39,13 @@ const SignupPage: React.FC = () => {
     if (authError) {
       setError(authError.message);
     } else {
+      // Trigger Welcome Email (Fire and forget)
+      fetch('http://localhost:5000/api/notifications/welcome', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email, name: formData.name })
+      }).catch(err => console.error("Welcome email trigger failed", err));
+
       // Automatic login is enabled because you turned off email confirmation
       navigate('/dashboard');
     }
