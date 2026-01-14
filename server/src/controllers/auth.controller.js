@@ -29,7 +29,7 @@ export const forgotPassword = async (req, res) => {
             type: 'recovery',
             email: email,
             options: {
-                redirectTo: `${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password`
+                redirectTo: `${process.env.CLIENT_URL || 'https://datingapp-one.vercel.app'}/reset-password`
             }
         });
 
