@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_BASE_URL } from '../config/api';
 import { Link, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import ReactMarkdown from 'react-markdown';
@@ -40,7 +41,7 @@ const SignupPage: React.FC = () => {
       setError(authError.message);
     } else {
       // Trigger Welcome Email (Fire and forget)
-      fetch('http://localhost:5000/api/notifications/welcome', {
+      fetch(`${API_BASE_URL}/api/notifications/welcome`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email, name: formData.name })
@@ -55,7 +56,7 @@ const SignupPage: React.FC = () => {
     const { error: googleError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: 'http://localhost:5173/dashboard',
+        redirectTo: `${window.location.origin}/dashboard`,
       },
     });
     if (googleError) setError(googleError.message);

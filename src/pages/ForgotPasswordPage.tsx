@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_BASE_URL } from '../config/api';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { themeData } from '../data/themeData';
@@ -27,7 +28,7 @@ const ForgotPasswordPage: React.FC = () => {
               if (isLoading) return; // Prevent double-submit
               setIsLoading(true);
               try {
-                const response = await fetch('http://localhost:5000/api/auth/forgot-password', {
+                const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ email: (e.target as any)[0].value })

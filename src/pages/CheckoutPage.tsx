@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { API_BASE_URL } from '../config/api';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { themeData } from '../data/themeData';
@@ -81,7 +82,7 @@ const CheckoutPage: React.FC = () => {
   // Modular payment calls for 3rd party redirects
   const handleRedirectPayment = async (gatewayId: string) => {
     setIsProcessing(true);
-    const response = await fetch(`http://localhost:5000/api/payments/${gatewayId}/create-order`, {
+    const response = await fetch(`${API_BASE_URL}/api/payments/${gatewayId}/create-order`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ amount: finalPrice, itemName: purchaseItem?.name })
