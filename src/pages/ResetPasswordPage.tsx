@@ -25,7 +25,7 @@ const ResetPasswordPage: React.FC = () => {
     // 2. Listen for auth changes. 
     // When the user clicks the recovery link, Supabase processes the hash fragment 
     // and fires a SIGNED_IN or PASSWORD_RECOVERY event.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
       if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
         setCanReset(true);
       } else if (event === 'SIGNED_OUT') {
