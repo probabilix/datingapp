@@ -75,9 +75,13 @@ const Header: React.FC = () => {
         }}
       >
         <div className="h-full max-w-full mx-auto px-6 md:px-10 flex items-center justify-between">
-          
+
           {/* LOGO */}
-          <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
+          <Link
+            to="/"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="flex items-center hover:opacity-80 transition-opacity"
+          >
             <div
               className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-xl shadow-lg"
               style={{ backgroundColor: themeData.colors.brand }}

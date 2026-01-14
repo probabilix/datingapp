@@ -2,7 +2,7 @@ export const stepsData = [
   {
     id: 1,
     title: "Create Your Account",
-    description: "Sign up in seconds with Google, Facebook, or your phone number. Quick and secure.",
+    description: "Sign up in seconds with Google Authentication. Quick and secure.",
     icon: "👤",
     // DARKENED SHADES AS PER REFERENCE
     bgColor: "#FFE4E6" // Deeper Pink

@@ -11,7 +11,7 @@ import Header from "../components/Header";
 import { motion, AnimatePresence } from "framer-motion";
 
 // Professional Credit Modal
-const CreditExhaustedModal: React.FC<{ onClose: () => void }> = ({ onClose }) => (
+const CreditExhaustedModal: React.FC<{ onClose: () => void; type: 'chat' | 'voice' }> = ({ onClose, type }) => (
   <motion.div
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
@@ -27,9 +27,13 @@ const CreditExhaustedModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
       <div className="mx-auto w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mb-6 text-red-500">
         <AlertCircle size={40} />
       </div>
-      <h3 className="text-2xl font-bold text-gray-900 mb-3">Talk Time Over</h3>
+      <h3 className="text-2xl font-bold text-gray-900 mb-3">
+        {type === 'chat' ? 'Message Limit Reached' : 'Talk Time Over'}
+      </h3>
       <p className="text-gray-500 mb-8 leading-relaxed text-sm">
-        Your consultation minutes have run out. Please top up your credits to continue this session.
+        {type === 'chat'
+          ? "You've used all your available messages. Please top up your credits to continue chatting."
+          : "Your consultation minutes have run out. Please top up your credits to continue this session."}
       </p>
       <button
         onClick={() => window.location.href = '/billing'}
@@ -56,6 +60,7 @@ const ConsultationPage: React.FC = () => {
   const [n8nConfig, setN8nConfig] = useState<{ apiKey: string } | null>(null);
   const [usage, setUsage] = useState<any>(null);
   const [showBillingModal, setShowBillingModal] = useState(false);
+  const [modalType, setModalType] = useState<'chat' | 'voice'>('voice');
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const [messages, setMessages] = useState<any[]>([]);
@@ -171,6 +176,7 @@ const ConsultationPage: React.FC = () => {
     const currentMinutes = freshUsage?.voice_minutes_left ?? 0;
 
     if (currentMinutes <= 0.1) {
+      setModalType('voice');
       setShowBillingModal(true);
       return;
     }
@@ -188,6 +194,7 @@ const ConsultationPage: React.FC = () => {
       if (billingTimeoutRef.current) clearTimeout(billingTimeoutRef.current);
       billingTimeoutRef.current = setTimeout(() => {
         vapiRef.current?.stop();
+        setModalType('voice');
         setShowBillingModal(true);
       }, (maxDurationSeconds * 1000) + 1000);
 
@@ -230,6 +237,7 @@ const ConsultationPage: React.FC = () => {
     if (!input.trim() || !selectedAdvisor || isTyping) return;
     const totalCredits = (usage?.messages_left || 0) + (usage?.custom_messages_balance || 0);
     if (totalCredits <= 0) {
+      setModalType('chat');
       setShowBillingModal(true);
       return;
     }
@@ -275,7 +283,7 @@ const ConsultationPage: React.FC = () => {
     <div className="h-screen flex flex-col overflow-hidden" style={{ backgroundColor: themeData.colors.bgSoft }}>
       <Header />
       <AnimatePresence>
-        {showBillingModal && <CreditExhaustedModal onClose={() => setShowBillingModal(false)} />}
+        {showBillingModal && <CreditExhaustedModal type={modalType} onClose={() => setShowBillingModal(false)} />}
       </AnimatePresence>
 
       <main className={`flex-grow pt-20 md:pt-28 pb-4 px-4 md:px-8 max-w-[1600px] mx-auto flex gap-6 w-full h-full relative ${isMobile ? 'flex-col' : 'flex-row'}`}>
