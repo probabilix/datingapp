@@ -5,7 +5,14 @@ import paypalRoutes from './routes/paypal.routes.js';
 import razorpayRoutes from './routes/razorpay.routes.js';
 
 const app = express();
-app.use(cors());
+app.use(cors({
+    origin: [
+        'http://localhost:5173',
+        'https://datingapp-one.vercel.app',
+        process.env.CLIENT_URL // Dynamic fallback
+    ].filter(Boolean),
+    credentials: true
+}));
 app.use(express.json());
 
 import authRoutes from './routes/auth.routes.js';
