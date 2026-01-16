@@ -23,8 +23,12 @@ export const forgotPassword = async (req, res) => {
         return res.status(400).json({ error: "Email is required" });
     }
 
+    const start = Date.now();
     try {
+        console.log(`[ForgotPwd] Started processing for ${email}`);
+
         // 1. Generate Link via Supabase Admin
+        const t1 = Date.now();
         const { data, error } = await supabaseAdmin.auth.admin.generateLink({
             type: 'recovery',
             email: email,
@@ -32,6 +36,8 @@ export const forgotPassword = async (req, res) => {
                 redirectTo: `${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password`
             }
         });
+        const linkDuration = Date.now() - t1;
+        console.log(`[ForgotPwd] Link Gen took ${linkDuration}ms`);
 
         if (error) throw error;
 
@@ -40,12 +46,23 @@ export const forgotPassword = async (req, res) => {
         const htmlContent = getResetPasswordTemplate(recoveryLink);
 
         // Removed timestamp as per user request to avoid syncing confusion
+        const t2 = Date.now();
         await sendEmail(email, "Reset Password Request", htmlContent);
+        const emailDuration = Date.now() - t2;
+        console.log(`[ForgotPwd] Email Send took ${emailDuration}ms`);
 
-        res.json({ message: "Password reset email sent successfully" });
+        const totalDuration = Date.now() - start;
+        res.json({
+            message: "Password reset email sent successfully",
+            timings: { link: linkDuration, email: emailDuration, total: totalDuration }
+        });
 
     } catch (error) {
         console.error("Forgot Password Error:", error);
-        res.status(500).json({ error: error.message || "Failed to send reset email" });
+        const totalDuration = Date.now() - start;
+        res.status(500).json({
+            error: error.message || "Failed to send reset email",
+            timings: { total: totalDuration }
+        });
     }
 };
