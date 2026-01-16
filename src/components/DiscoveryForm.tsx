@@ -6,9 +6,10 @@ interface DiscoveryFormProps {
   isOpen: boolean;
   onClose: () => void;
   userId: string | undefined;
+  onSuccess?: () => void;
 }
 
-const DiscoveryForm: React.FC<DiscoveryFormProps> = ({ isOpen, onClose, userId }) => {
+const DiscoveryForm: React.FC<DiscoveryFormProps> = ({ isOpen, onClose, userId, onSuccess }) => {
   const [questions, setQuestions] = useState<any[]>([]);
   const [currentStep, setCurrentStep] = useState(1);
   const [answers, setAnswers] = useState<any>({});
@@ -73,8 +74,9 @@ const DiscoveryForm: React.FC<DiscoveryFormProps> = ({ isOpen, onClose, userId }
         // --- ADDED THIS LINE TO LOCK THE FORM ---
         localStorage.setItem('discovery_pending', 'true');
 
+        // Notify parent that submission happened
+        if (onSuccess) onSuccess();
         onClose();
-        window.location.reload();
       } else {
         const errorText = await response.text();
         console.error("n8n Error Response:", errorText);

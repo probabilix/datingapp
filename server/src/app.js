@@ -8,8 +8,7 @@ const app = express();
 app.use(cors({
     origin: [
         'http://localhost:5173',
-        'https://datingapp-one.vercel.app',
-        process.env.CLIENT_URL // Dynamic fallback
+        process.env.CLIENT_URL // Dynamic fallback from env
     ].filter(Boolean),
     credentials: true
 }));

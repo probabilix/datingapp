@@ -17,6 +17,13 @@ const DashboardPage: React.FC = () => {
 
   const [isDiscoveryOpen, setIsDiscoveryOpen] = useState(false);
   const [showAnalysis, setShowAnalysis] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  useEffect(() => {
+    // Sync initial state from storage, BUT prioritize profile data if it loads later
+    const pending = localStorage.getItem('discovery_pending') === 'true';
+    setIsAnalyzing(pending);
+  }, []);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
@@ -36,14 +43,64 @@ const DashboardPage: React.FC = () => {
 
       if (profileRes.data) {
         setProfile(profileRes.data);
-        // CRITICAL: If analysis arrived, clear the local storage lock
+        // CRITICAL: If analysis arrived, clear the local storage lock immediately
         if (profileRes.data.persona_analysis && Object.keys(profileRes.data.persona_analysis).length > 0) {
           localStorage.removeItem('discovery_pending');
+          setIsAnalyzing(false);
         }
       }
       if (usageRes.data) setUsage(usageRes.data);
       if (advisorsRes.data) setAdvisors(advisorsRes.data);
       setLoading(false);
+
+      // --- REALTIME SUBSCRIPTION ---
+      const channel = supabase
+        .channel('schema-db-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'profiles',
+            filter: `id=eq.${session.user.id}`
+          },
+          (payload) => {
+            console.log("Realtime Update Received:", payload);
+            const newProfile = payload.new;
+            setProfile(newProfile);
+
+            // Check if analysis is now ready
+            if (newProfile.persona_analysis && Object.keys(newProfile.persona_analysis).length > 0) {
+              localStorage.removeItem('discovery_pending');
+              setIsAnalyzing(false);
+              // Optional: You could trigger a toast or sound here
+            }
+          }
+        )
+        .subscribe();
+
+      // --- POLLING FALLBACK (Robustness for "Spending too much time") ---
+      // If we are waiting for analysis, check every 2 seconds just in case Realtime misses a beat.
+      const pollInterval = setInterval(async () => {
+        // ALWAYS poll if we don't have analysis but think we should
+        // This covers the case where 'discovery_pending' might be lost but user is waiting
+        if (!profile?.persona_analysis && localStorage.getItem('discovery_pending') === 'true') {
+          console.log("Polling for analysis...");
+          const { data: newProfile } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+
+          if (newProfile && newProfile.persona_analysis && Object.keys(newProfile.persona_analysis).length > 0) {
+            console.log("Polling success! Analysis found.");
+            setProfile(newProfile);
+            localStorage.removeItem('discovery_pending');
+            setIsAnalyzing(false);
+          }
+        }
+      }, 2000);
+
+      return () => {
+        supabase.removeChannel(channel);
+        clearInterval(pollInterval);
+      };
     };
     fetchData();
   }, [navigate]);
@@ -102,8 +159,10 @@ const DashboardPage: React.FC = () => {
                 </p>
               </div>
 
-              {/* Updated Logic: Show 'Processing' if lock is active */}
-              {localStorage.getItem('discovery_pending') === 'true' && !profile?.persona_analysis ? (
+              {/* Updated Logic: Use State instead of localStorage direct read */}
+              {/* Updated Logic: Single Source of Truth - If analysis exists, SHOW IT. Else if waiting, show loader. */}
+              {/* Updated Logic: Single Source of Truth - If analysis exists, SHOW IT. Else if waiting, show loader. */}
+              {!profile?.persona_analysis && isAnalyzing ? (
                 <div className="px-8 py-4 bg-white/10 border border-white/20 rounded-2xl flex items-center gap-3 italic text-sm text-white/60">
                   <Clock size={16} className="animate-spin" /> Analyzing your persona...
                 </div>
@@ -192,6 +251,7 @@ const DashboardPage: React.FC = () => {
         isOpen={isDiscoveryOpen}
         onClose={() => setIsDiscoveryOpen(false)}
         userId={profile?.id}
+        onSuccess={() => setIsAnalyzing(true)}
       />
 
       <Footer />
