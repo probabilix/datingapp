@@ -3,3 +3,5 @@
 // Example: VITE_API_URL=https://my-dating-app-backend.onrender.com
 
 export const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5000');
+
+console.log(`[Config] API_BASE_URL resolved to: "${API_BASE_URL}" (Prod: ${import.meta.env.PROD})`);

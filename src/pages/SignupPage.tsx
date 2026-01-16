@@ -41,11 +41,23 @@ const SignupPage: React.FC = () => {
       setError(authError.message);
     } else {
       // Trigger Welcome Email (Fire and forget)
+      // Trigger Welcome Email (Fire and forget ... but now with logs)
+      console.log(`[Signup] Triggering welcome email to ${API_BASE_URL}/api/notifications/welcome`);
       fetch(`${API_BASE_URL}/api/notifications/welcome`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email, name: formData.name })
-      }).catch(err => console.error("Welcome email trigger failed", err));
+      })
+        .then(async (res) => {
+          console.log(`[Signup] Email API Response Status: ${res.status}`);
+          if (!res.ok) {
+            const text = await res.text();
+            console.error(`[Signup] Email API Failed: ${text}`);
+          } else {
+            console.log("[Signup] Email triggered successfully.");
+          }
+        })
+        .catch(err => console.error("[Signup] Welcome email network error:", err));
 
       // Automatic login is enabled because you turned off email confirmation
       navigate('/dashboard');
