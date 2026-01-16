@@ -14,16 +14,18 @@ const ResetPasswordPage: React.FC = () => {
   // State to track if we allow the user to reset password
   const [canReset, setCanReset] = useState(false);
 
-
   useEffect(() => {
     // 1. CLEAN LINK STRATEGY: Check for 'token' in URL (from our direct email link)
     const searchParams = new URLSearchParams(window.location.search);
     const token = searchParams.get('token');
-    const type = searchParams.get('type') as any; // 'recovery'
+    const type = searchParams.get('type');
 
     if (token && type) {
       console.log("[ResetPwd] Detected Clean Link Token. Verifying...");
-      supabase.auth.verifyOtp({ token, type }).then(({ data, error }) => {
+      // Explicitly cast type to EmailOtpType to satisfy TS
+      const otpType = type as import('@supabase/supabase-js').EmailOtpType; // 'recovery'
+
+      supabase.auth.verifyOtp({ token, type: otpType, email: undefined }).then(({ data, error }) => {
         if (!error && data.session) {
           console.log("[ResetPwd] Manual Verification Success");
           setCanReset(true);
@@ -31,7 +33,7 @@ const ResetPasswordPage: React.FC = () => {
           window.history.replaceState({}, document.title, window.location.pathname);
         } else {
           console.error("[ResetPwd] Verification Failed:", error);
-          setError("Invalid or expired link.");
+          setError("Invalid or expired link. Please request a new one.");
         }
       });
     }
@@ -43,7 +45,9 @@ const ResetPasswordPage: React.FC = () => {
       }
     });
 
-    // 3. Listen for auth changes (Magic Link Flow fallback)
+    // 2. Listen for auth changes. 
+    // When the user clicks the recovery link, Supabase processes the hash fragment 
+    // and fires a SIGNED_IN or PASSWORD_RECOVERY event.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
       if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
         setCanReset(true);
