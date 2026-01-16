@@ -22,14 +22,12 @@ const ResetPasswordPage: React.FC = () => {
 
     if (token && type) {
       console.log("[ResetPwd] Detected Clean Link Token. Verifying...");
-      // Explicitly cast type to EmailOtpType to satisfy TS
-      const otpType = type as import('@supabase/supabase-js').EmailOtpType; // 'recovery'
-
-      supabase.auth.verifyOtp({ token, type: otpType, email: undefined }).then(({ data, error }) => {
+      // Using 'as any' to prevent TypeScript errors with strict EmailOtpType
+      supabase.auth.verifyOtp({ token, type: type as any }).then(({ data, error }) => {
         if (!error && data.session) {
           console.log("[ResetPwd] Manual Verification Success");
           setCanReset(true);
-          // Clean URL
+          // Clean URL to remove sensitive token
           window.history.replaceState({}, document.title, window.location.pathname);
         } else {
           console.error("[ResetPwd] Verification Failed:", error);
