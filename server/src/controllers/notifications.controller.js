@@ -11,11 +11,13 @@ export const sendWelcomeEmail = async (req, res) => {
     try {
         const htmlContent = getWelcomeTemplate(name);
 
-        // Fire and forget - don't block response
-        sendEmail(email, "Welcome to DatingAdvice.io! 💖", htmlContent)
-            .catch(err => console.error("Welcome Email Failed:", err));
+        // CRITICAL FIX: In Vercel/Serverless, we MUST await the email.
+        // "Fire and forget" causes the function to freeze before sending, 
+        // leading to emails only sending on the *next* request (Cold Start thaw).
+        await sendEmail(email, "Welcome to DatingAdvice.io! 💖", htmlContent);
 
-        res.json({ message: "Welcome email queued" });
+        console.log(`[Welcome] Email successfully sent to ${email}`);
+        res.json({ message: "Welcome email sent successfully" });
     } catch (error) {
         console.error("Welcome Email Error:", error);
         res.status(500).json({ error: "Failed to queue welcome email" });
