@@ -39,7 +39,7 @@ export const forgotPassword = async (req, res) => {
         // 2. Send Custom Email using Template
         const htmlContent = getResetPasswordTemplate(recoveryLink);
 
-        const timestamp = new Date().toLocaleTimeString();
+        const timestamp = new Date().toUTCString();
         await sendEmail(email, `Reset Password Request [${timestamp}]`, htmlContent);
 
         res.json({ message: "Password reset email sent successfully" });

@@ -89,8 +89,9 @@ const DashboardPage: React.FC = () => {
           const { data: newProfile } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
 
           if (newProfile && newProfile.persona_analysis && Object.keys(newProfile.persona_analysis).length > 0) {
-            console.log("Polling success! Analysis found.");
+            console.log("Polling success! Analysis found. Updating State now.");
             setProfile(newProfile);
+            console.log("State setProfile called.");
             localStorage.removeItem('discovery_pending');
             setIsAnalyzing(false);
           }
