@@ -25,22 +25,37 @@ const ForgotPasswordPage: React.FC = () => {
           {!submitted ? (
             <form className="space-y-6" onSubmit={async (e) => {
               e.preventDefault();
-              if (isLoading) return; // Prevent double-submit
+              if (isLoading) return;
               setIsLoading(true);
+              const emailVal = (e.target as any)[0].value;
+              console.log(`[ForgotPwd] Sending request for: ${emailVal}`);
+
               try {
                 const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ email: (e.target as any)[0].value })
+                  body: JSON.stringify({ email: emailVal })
                 });
-                if (response.ok) setSubmitted(true);
-                else {
-                  const data = await response.json();
-                  alert(data.error || "Failed to send email. Please try again.");
+
+                console.log(`[ForgotPwd] Status: ${response.status}`);
+
+                if (response.ok) {
+                  setSubmitted(true);
+                } else {
+                  const contentType = response.headers.get("content-type");
+                  if (contentType && contentType.indexOf("application/json") !== -1) {
+                    const data = await response.json();
+                    console.error("[ForgotPwd] Server JSON Error:", data);
+                    alert(data.error || "Failed to send email.");
+                  } else {
+                    const text = await response.text();
+                    console.error("[ForgotPwd] Server Text Error:", text);
+                    alert("Server Error. Check console for details.");
+                  }
                 }
               } catch (err) {
-                console.error(err);
-                alert("Server error. Please check connection.");
+                console.error("[ForgotPwd] Network Error:", err);
+                alert("Network connection failed.");
               } finally {
                 setIsLoading(false);
               }
