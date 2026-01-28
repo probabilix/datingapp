@@ -166,6 +166,9 @@ const Footer: React.FC = () => {
                 <li><Link to="/privacy" className="hover:text-[#E94057]">Privacy Policy</Link></li>
                 <li><Link to="/terms" className="hover:text-[#E94057]">Terms of Use</Link></li>
                 <li><Link to="/cookies" className="hover:text-[#E94057]">Cookies Policy</Link></li>
+                <li><Link to="/refund-policy" className="hover:text-[#E94057]">Refund Policy</Link></li>
+                <li><Link to="/community-guidelines" className="hover:text-[#E94057]">Community Guidelines</Link></li>
+                <li><Link to="/arbitration-opt-out" className="hover:text-[#E94057]">Arbitration Opt-Out</Link></li>
               </ul>
             </div>
           </div>

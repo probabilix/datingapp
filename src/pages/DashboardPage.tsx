@@ -8,6 +8,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import DiscoveryForm from '../components/DiscoveryForm';
 
+
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
@@ -132,130 +133,133 @@ const DashboardPage: React.FC = () => {
   );
 
   return (
-    <div className="flex flex-col min-h-screen" style={{ backgroundColor: themeData.colors.bgSoft }}>
+    <div className="flex flex-col min-h-screen relative" style={{ backgroundColor: themeData.colors.bgSoft }}>
       <Helmet><title>Dashboard | DatingAdvice.io</title></Helmet>
 
-      <Header />
+      {/* Main Content */}
+      <div className="flex flex-col min-h-screen transition-all duration-500">
+        <Header />
 
-      <main className="flex-grow pt-24 pb-12 animate-in fade-in slide-in-from-top-4 duration-700">
+        <main className="flex-grow pt-24 pb-12 animate-in fade-in slide-in-from-top-4 duration-700">
 
-        <section className="px-6 md:px-12 lg:px-24 mb-10">
-          <div className="relative overflow-hidden rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-12 text-white shadow-2xl"
-            style={{ backgroundColor: themeData.colors.textHeading }}>
+          <section className="px-6 md:px-12 lg:px-24 mb-10">
+            <div className="relative overflow-hidden rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-12 text-white shadow-2xl"
+              style={{ backgroundColor: themeData.colors.textHeading }}>
 
-            <div className="absolute top-[-15%] right-[-10%] w-72 h-72 opacity-25 blur-[100px] animate-pulse"
-              style={{ backgroundColor: themeData.colors.brand }}></div>
-            <div className="absolute bottom-[-15%] left-[-10%] w-64 h-64 bg-blue-600 opacity-15 blur-[100px]"></div>
+              <div className="absolute top-[-15%] right-[-10%] w-72 h-72 opacity-25 blur-[100px] animate-pulse"
+                style={{ backgroundColor: themeData.colors.brand }}></div>
+              <div className="absolute bottom-[-15%] left-[-10%] w-64 h-64 bg-blue-600 opacity-15 blur-[100px]"></div>
 
-            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
-              <div className="max-w-xl">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md text-[9px] font-black uppercase tracking-widest mb-6 border border-white/10">
-                  <Activity size={10} className="text-green-400 animate-pulse" /> AI Analysis Active
+              <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+                <div className="max-w-xl">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md text-[9px] font-black uppercase tracking-widest mb-6 border border-white/10">
+                    <Activity size={10} className="text-green-400 animate-pulse" /> AI Analysis Active
+                  </div>
+                  <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ fontFamily: 'DM Serif Display' }}>
+                    Welcome back, {profile?.full_name?.split(' ')[0] || 'User'}
+                  </h2>
+                  <p className="text-white/60 text-base leading-relaxed">
+                    Your relationship growth is our priority. Let's find your perfect match in strategy today.
+                  </p>
                 </div>
-                <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ fontFamily: 'DM Serif Display' }}>
-                  Welcome back, {profile?.full_name?.split(' ')[0] || 'User'}
-                </h2>
-                <p className="text-white/60 text-base leading-relaxed">
-                  Your relationship growth is our priority. Let's find your perfect match in strategy today.
-                </p>
+
+                {/* Updated Logic: Use State instead of localStorage direct read */}
+                {/* Updated Logic: Single Source of Truth - If analysis exists, SHOW IT. Else if waiting, show loader. */}
+                {/* Updated Logic: Single Source of Truth - If analysis exists, SHOW IT. Else if waiting, show loader. */}
+                {!profile?.persona_analysis && isAnalyzing ? (
+                  <div className="px-8 py-4 bg-white/10 border border-white/20 rounded-2xl flex items-center gap-3 italic text-sm text-white/60">
+                    <Clock size={16} className="animate-spin" /> Analyzing your persona...
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => profile?.persona_analysis ? setShowAnalysis(!showAnalysis) : setIsDiscoveryOpen(true)}
+                    className="px-8 py-4 bg-white font-bold rounded-2xl hover:scale-105 transition-all shadow-xl flex items-center gap-3"
+                    style={{ color: themeData.colors.textHeading }}>
+                    {profile?.persona_analysis ? 'View My Analysis' : 'Launch Analysis'} <Zap size={16} fill="currentColor" />
+                  </button>
+                )}
               </div>
 
-              {/* Updated Logic: Use State instead of localStorage direct read */}
-              {/* Updated Logic: Single Source of Truth - If analysis exists, SHOW IT. Else if waiting, show loader. */}
-              {/* Updated Logic: Single Source of Truth - If analysis exists, SHOW IT. Else if waiting, show loader. */}
-              {!profile?.persona_analysis && isAnalyzing ? (
-                <div className="px-8 py-4 bg-white/10 border border-white/20 rounded-2xl flex items-center gap-3 italic text-sm text-white/60">
-                  <Clock size={16} className="animate-spin" /> Analyzing your persona...
+              {showAnalysis && profile?.persona_analysis && (
+                <div className="relative z-10 mt-8 p-6 md:p-8 bg-white/10 backdrop-blur-lg rounded-[2.5rem] border border-white/10 animate-in slide-in-from-top-4 duration-500">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Sparkles className="text-[#E94057]" size={20} />
+                    <h4 className="text-xl font-bold">AI Persona Insight</h4>
+                  </div>
+                  <p className="text-white/80 leading-relaxed text-sm md:text-base mb-6">
+                    {profile.persona_analysis.summary || "Your analysis is being processed..."}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="text-[10px] font-black uppercase opacity-40 w-full mb-1">Recommended Experts:</span>
+                    {profile.persona_analysis.recommended_advisors?.map((name: string) => (
+                      <span key={name} className="px-4 py-1.5 bg-[#E94057] rounded-full text-[11px] font-bold shadow-lg">
+                        {name}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              ) : (
-                <button
-                  onClick={() => profile?.persona_analysis ? setShowAnalysis(!showAnalysis) : setIsDiscoveryOpen(true)}
-                  className="px-8 py-4 bg-white font-bold rounded-2xl hover:scale-105 transition-all shadow-xl flex items-center gap-3"
-                  style={{ color: themeData.colors.textHeading }}>
-                  {profile?.persona_analysis ? 'View My Analysis' : 'Launch Analysis'} <Zap size={16} fill="currentColor" />
-                </button>
               )}
             </div>
+          </section>
 
-            {showAnalysis && profile?.persona_analysis && (
-              <div className="relative z-10 mt-8 p-6 md:p-8 bg-white/10 backdrop-blur-lg rounded-[2.5rem] border border-white/10 animate-in slide-in-from-top-4 duration-500">
-                <div className="flex items-center gap-3 mb-4">
-                  <Sparkles className="text-[#E94057]" size={20} />
-                  <h4 className="text-xl font-bold">AI Persona Insight</h4>
+          <section className="px-6 md:px-12 lg:px-24 mb-12">
+            <div className="flex overflow-x-auto md:grid md:grid-cols-3 gap-6 no-scrollbar pb-2 md:pb-0">
+              <StatCard icon={<Clock size={22} />} title="Voice Time" value={`${usage?.voice_minutes_left || 0}m`} color="bg-blue-500" />
+              <StatCard icon={<MessageSquare size={22} />} title="Chat Credits" value={`${usage?.messages_left || 0} left`} color="bg-purple-500" />
+              <StatCard icon={<ShieldCheck size={22} />} title="Plan Level" value={usage?.plan_type || 'Free'} color={themeData.colors.brand} />
+            </div>
+          </section>
+
+          <section className="px-6 md:px-12 lg:px-24">
+            <div className="flex items-center justify-between mb-8">
+              <h3 className="text-2xl font-bold" style={{ fontFamily: 'DM Serif Display', color: themeData.colors.textHeading }}>Expert Advisors</h3>
+              {/* REMOVED REFRESH BUTTON */}
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
+              {advisors.map((advisor) => (
+                <div key={advisor.id} className="group bg-white rounded-[2rem] p-5 md:p-8 border border-gray-50 shadow-sm hover:shadow-md transition-all flex flex-col items-center">
+                  <div className="relative mb-5">
+                    <img src={advisor.image_url} alt={advisor.name}
+                      className="w-20 h-20 md:w-24 md:h-24 rounded-[1.5rem] md:rounded-[2rem] object-cover shadow-sm transition-transform group-hover:scale-105" />
+                    {advisor.is_online && <div className="absolute bottom-0.5 right-0.5 w-4 h-4 bg-green-500 border-2 border-white rounded-full shadow-sm" />}
+                  </div>
+
+                  <div className="flex items-center gap-1 text-yellow-500 text-[10px] mb-1 px-2 py-0.5 bg-yellow-50 rounded-full">
+                    <Star size={10} fill="currentColor" /> {advisor.rating}
+                  </div>
+
+                  <h4 className="text-sm md:text-xl font-bold mb-0.5 text-center" style={{ fontFamily: 'DM Serif Display', color: themeData.colors.textHeading }}>{advisor.name}</h4>
+                  <p className="text-[9px] md:text-[11px] uppercase font-bold opacity-30 tracking-wide mb-6 text-center">{advisor.specialty}</p>
+
+                  <div className="flex gap-2 w-full mt-auto">
+                    <button
+                      onClick={() => handleDivert(advisor.id, 'chat')}
+                      className="flex-1 h-10 md:h-12 bg-gray-50 rounded-xl flex items-center justify-center hover:bg-black hover:text-white transition-all shadow-inner cursor-pointer">
+                      <MessageSquare size={16} />
+                    </button>
+                    <button
+                      onClick={() => handleDivert(advisor.id, 'voice')}
+                      className="flex-1 h-10 md:h-12 rounded-xl text-white flex items-center justify-center transition-all shadow-md hover:brightness-110 active:scale-95 cursor-pointer"
+                      style={{ backgroundColor: themeData.colors.brand }}>
+                      <Phone size={16} />
+                    </button>
+                  </div>
                 </div>
-                <p className="text-white/80 leading-relaxed text-sm md:text-base mb-6">
-                  {profile.persona_analysis.summary || "Your analysis is being processed..."}
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  <span className="text-[10px] font-black uppercase opacity-40 w-full mb-1">Recommended Experts:</span>
-                  {profile.persona_analysis.recommended_advisors?.map((name: string) => (
-                    <span key={name} className="px-4 py-1.5 bg-[#E94057] rounded-full text-[11px] font-bold shadow-lg">
-                      {name}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
+              ))}
+            </div>
+          </section>
+        </main>
 
-        <section className="px-6 md:px-12 lg:px-24 mb-12">
-          <div className="flex overflow-x-auto md:grid md:grid-cols-3 gap-6 no-scrollbar pb-2 md:pb-0">
-            <StatCard icon={<Clock size={22} />} title="Voice Time" value={`${usage?.voice_minutes_left || 0}m`} color="bg-blue-500" />
-            <StatCard icon={<MessageSquare size={22} />} title="Chat Credits" value={`${usage?.messages_left || 0} left`} color="bg-purple-500" />
-            <StatCard icon={<ShieldCheck size={22} />} title="Plan Level" value={usage?.plan_type || 'Free'} color={themeData.colors.brand} />
-          </div>
-        </section>
+        <DiscoveryForm
+          isOpen={isDiscoveryOpen}
+          onClose={() => setIsDiscoveryOpen(false)}
+          userId={profile?.id}
+          onSuccess={() => setIsAnalyzing(true)}
+        />
 
-        <section className="px-6 md:px-12 lg:px-24">
-          <div className="flex items-center justify-between mb-8">
-            <h3 className="text-2xl font-bold" style={{ fontFamily: 'DM Serif Display', color: themeData.colors.textHeading }}>Expert Advisors</h3>
-            {/* REMOVED REFRESH BUTTON */}
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
-            {advisors.map((advisor) => (
-              <div key={advisor.id} className="group bg-white rounded-[2rem] p-5 md:p-8 border border-gray-50 shadow-sm hover:shadow-md transition-all flex flex-col items-center">
-                <div className="relative mb-5">
-                  <img src={advisor.image_url} alt={advisor.name}
-                    className="w-20 h-20 md:w-24 md:h-24 rounded-[1.5rem] md:rounded-[2rem] object-cover shadow-sm transition-transform group-hover:scale-105" />
-                  {advisor.is_online && <div className="absolute bottom-0.5 right-0.5 w-4 h-4 bg-green-500 border-2 border-white rounded-full shadow-sm" />}
-                </div>
-
-                <div className="flex items-center gap-1 text-yellow-500 text-[10px] mb-1 px-2 py-0.5 bg-yellow-50 rounded-full">
-                  <Star size={10} fill="currentColor" /> {advisor.rating}
-                </div>
-
-                <h4 className="text-sm md:text-xl font-bold mb-0.5 text-center" style={{ fontFamily: 'DM Serif Display', color: themeData.colors.textHeading }}>{advisor.name}</h4>
-                <p className="text-[9px] md:text-[11px] uppercase font-bold opacity-30 tracking-wide mb-6 text-center">{advisor.specialty}</p>
-
-                <div className="flex gap-2 w-full mt-auto">
-                  <button
-                    onClick={() => handleDivert(advisor.id, 'chat')}
-                    className="flex-1 h-10 md:h-12 bg-gray-50 rounded-xl flex items-center justify-center hover:bg-black hover:text-white transition-all shadow-inner cursor-pointer">
-                    <MessageSquare size={16} />
-                  </button>
-                  <button
-                    onClick={() => handleDivert(advisor.id, 'voice')}
-                    className="flex-1 h-10 md:h-12 rounded-xl text-white flex items-center justify-center transition-all shadow-md hover:brightness-110 active:scale-95 cursor-pointer"
-                    style={{ backgroundColor: themeData.colors.brand }}>
-                    <Phone size={16} />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      </main>
-
-      <DiscoveryForm
-        isOpen={isDiscoveryOpen}
-        onClose={() => setIsDiscoveryOpen(false)}
-        userId={profile?.id}
-        onSuccess={() => setIsAnalyzing(true)}
-      />
-
-      <Footer />
+        <Footer />
+      </div>
     </div>
   );
 };

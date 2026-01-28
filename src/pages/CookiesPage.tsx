@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import Header from '../components/Header';
@@ -9,25 +9,83 @@ import { themeData } from '../data/themeData';
 const CookiesPage: React.FC = () => {
   const navigate = useNavigate();
 
-  // Static content directly in the file
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const document = {
-    title: 'Cookies Policy',
-    last_updated: 'December 2025',
-    content: `This Cookies Policy explains how DatingAdvice.io uses cookies and similar technologies.
+    title: 'Cookie Policy',
+    last_updated: 'January 27, 2026',
+    content: `**Effective Date:** January 27, 2026  
+**Last Updated:** January 27, 2026
 
-**1. What Are Cookies?**
+This Cookie Policy explains how Dating Advice.io uses cookies and similar technologies ("Cookies") on our website and web-based components of the Service.
 
-Cookies are small text files stored on your device that help us remember your preferences and improve your experience.
+This Policy should be read together with our Privacy Policy.
 
-**2. How We Use Cookies**
+## 1. WHAT ARE COOKIES?
 
-- **Essential Cookies:** Necessary for the website to function (e.g., authentication).
-- **Analytics Cookies:** Help us understand how visitors interact with our site so we can improve it.
-- **Preference Cookies:** Remember your settings and choices.
+Cookies are small text files stored on your device by websites to remember your preferences, enable functionality, and analyze usage. We may also use similar technologies such as pixels, web beacons, SDKs, and local storage.
 
-**3. Managing Cookies**
+## 2. WHAT TYPES OF COOKIES WE USE
 
-You can control or delete cookies through your browser settings. However, disabling cookies may affect the functionality of our service.`
+**2.1 Strictly Necessary Cookies**
+
+These cookies are required for core functions such as:
+*   authentication
+*   account login
+*   security and fraud prevention
+*   remembering session state
+
+**Legal basis (EU/UK):** Legitimate Interests / Necessary for Contract
+
+**2.2 Preference Cookies**
+
+These cookies remember your settings, including:
+*   language preferences
+*   UI preferences
+
+**Legal basis (EU/UK):** Consent (where required)
+
+**2.3 Analytics Cookies**
+
+We may use analytics cookies to understand how users interact with the Service (e.g., pages visited, session duration).
+
+**Legal basis (EU/UK):** Consent (where required)
+
+**2.4 Advertising / Marketing Cookies (If Applicable)**
+
+We may use advertising cookies and similar tech to:
+*   measure advertising effectiveness
+*   deliver interest-based ads (where applicable)
+
+**Legal basis (EU/UK):** Consent (required)
+
+## 3. COOKIE CONSENT (EU/UK USERS)
+
+If you are located in the EU/UK, we will present a cookie banner to:
+*   allow acceptance of non-essential cookies
+*   allow rejection of non-essential cookies
+*   allow granular consent (e.g., analytics vs marketing)
+
+You may withdraw consent at any time by adjusting cookie preferences settings in your browser or through our cookie settings tool (if available).
+
+## 4. HOW TO MANAGE COOKIES
+
+You may disable cookies via browser settings. **Note:** disabling strictly necessary cookies may cause parts of the Service not to function.
+
+## 5. DO NOT TRACK
+
+We do not respond to browser "Do Not Track" signals due to lack of a uniform standard.
+
+## 6. UPDATES
+
+We may update this Cookie Policy periodically. Continued use constitutes acceptance.
+
+## 7. CONTACT
+
+**Email:** support@datingadvice.io
+`
   };
 
   return (

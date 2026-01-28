@@ -24,6 +24,10 @@ import CookiesPage from './pages/CookiesPage';
 import PrivacyPage from './pages/PrivacyPage';
 
 import TermsPage from './pages/termsPage';
+import RefundPolicyPage from './pages/RefundPolicyPage';
+import CommunityGuidelinesPage from './pages/CommunityGuidelinesPage';
+import ArbitrationOptOutPage from './pages/ArbitrationOptOutPage';
+import OnboardingPage from './pages/OnboardingPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
@@ -38,17 +42,45 @@ import { themeData } from './data/themeData';
 // Helper: Protected Route Guard
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<any>(null);
+  const [isOnboarded, setIsOnboarded] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const checkAuthAndOnboarding = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
+
+      if (session) {
+        // Check profile for onboarding status
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('onboarding_completed_at')
+          .eq('id', session.user.id)
+          .single();
+
+        // If profile exists and has a timestamp, they are onboarded
+        if (profile?.onboarding_completed_at) {
+          setIsOnboarded(true);
+        }
+      }
       setLoading(false);
-    });
+    };
+
+    checkAuthAndOnboarding();
   }, []);
 
-  if (loading) return null;
-  return session ? <>{children}</> : <Navigate to="/login" replace />;
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-rose-50">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500"></div>
+    </div>
+  );
+
+  if (!session) return <Navigate to="/login" replace />;
+
+  // Enforce onboarding
+  if (!isOnboarded) return <Navigate to="/onboarding" replace />;
+
+  return <>{children}</>;
 };
 
 const PageScrollReset = () => {
@@ -102,6 +134,8 @@ const App: React.FC = () => {
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
 
+            <Route path="/onboarding" element={<OnboardingPage />} />
+
             <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
             <Route path="/billing" element={<ProtectedRoute><BillingPage /></ProtectedRoute>} />
             <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
@@ -117,6 +151,9 @@ const App: React.FC = () => {
             <Route path="/privacy" element={<PrivacyPage />} />
 
             <Route path="/terms" element={<TermsPage />} />
+            <Route path="/refund-policy" element={<RefundPolicyPage />} />
+            <Route path="/community-guidelines" element={<CommunityGuidelinesPage />} />
+            <Route path="/arbitration-opt-out" element={<ArbitrationOptOutPage />} />
           </Routes>
 
           {showButton && (
