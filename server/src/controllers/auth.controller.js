@@ -33,7 +33,7 @@ export const forgotPassword = async (req, res) => {
             type: 'recovery',
             email: email,
             options: {
-                redirectTo: `${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password`
+                emailRedirectTo: `${process.env.CLIENT_URL}/reset-password`,
             }
         });
         const linkDuration = Date.now() - t1;

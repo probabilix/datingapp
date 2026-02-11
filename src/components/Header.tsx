@@ -55,9 +55,15 @@ const Header: React.FC = () => {
   }, []);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setShowProfileMenu(false);
-    navigate('/');
+    try {
+      await supabase.auth.signOut();
+      setSession(null);
+      navigate('/');
+    } catch (err) {
+      console.error("Logout Error:", err);
+      // Force navigation anyway
+      navigate('/');
+    }
   };
 
   return (

@@ -203,10 +203,17 @@ const ConsultationPage: React.FC = () => {
     }
   };
 
-  // 2. FETCH PREVIOUS CHATS
+  // Track active advisor for async safety
+  const activeAdvisorId = useRef<string | null>(null);
+
+  // 2. FETCH PREVIOUS CHATS & RESET STATE
   useEffect(() => {
+    activeAdvisorId.current = selectedAdvisor?.id || null;
+    setIsTyping(false); // Reset typing indicator when switching agents
+
     const fetchChatHistory = async () => {
       if (!selectedAdvisor) return;
+
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
       const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
@@ -219,7 +226,10 @@ const ConsultationPage: React.FC = () => {
         .order("created_at", { ascending: true });
 
       if (error) return;
-      setMessages(data || []);
+      // Double check matches current to prevent race conditions from rapid clicking
+      if (activeAdvisorId.current === selectedAdvisor.id) {
+        setMessages(data || []);
+      }
     };
     fetchChatHistory();
   }, [selectedAdvisor]);
@@ -235,6 +245,10 @@ const ConsultationPage: React.FC = () => {
 
   const handleSendMessage = async () => {
     if (!input.trim() || !selectedAdvisor || isTyping) return;
+
+    // Capture current ID at start of request
+    const currentAgentId = selectedAdvisor.id;
+
     const totalCredits = (usage?.messages_left || 0) + (usage?.custom_messages_balance || 0);
     if (totalCredits <= 0) {
       setModalType('chat');
@@ -259,16 +273,21 @@ const ConsultationPage: React.FC = () => {
         }),
       });
       const aiResponse = await res.json();
-      setMessages((prev) => [...prev, { role: "ai", content: aiResponse?.output || "..." }]);
-      setIsTyping(false); // Stop typing immediately after message is received
+
+      // CRITICAL FIX: Only update UI if user is still on the same agent
+      if (activeAdvisorId.current === currentAgentId) {
+        setMessages((prev) => [...prev, { role: "ai", content: aiResponse?.output || "..." }]);
+        setIsTyping(false);
+      }
 
       const { data: updatedUsage } = await supabase.from("user_usage").select("*").eq("user_id", session?.user?.id).single();
       setUsage(updatedUsage);
     } catch (err) {
-      setMessages((prev) => [...prev, { role: "ai", content: "⚠️ Connection error." }]);
-      setIsTyping(false);
+      if (activeAdvisorId.current === currentAgentId) {
+        setMessages((prev) => [...prev, { role: "ai", content: "⚠️ Connection error." }]);
+        setIsTyping(false);
+      }
     }
-    // finally block removed as we handle state explicitly above for better timing
   };
 
   const formatTime = (seconds: number) => {

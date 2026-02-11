@@ -205,7 +205,7 @@ const DashboardPage: React.FC = () => {
           <section className="px-6 md:px-12 lg:px-24 mb-12">
             <div className="flex overflow-x-auto md:grid md:grid-cols-3 gap-6 no-scrollbar pb-2 md:pb-0">
               <StatCard icon={<Clock size={22} />} title="Voice Time" value={`${usage?.voice_minutes_left || 0}m`} color="bg-blue-500" />
-              <StatCard icon={<MessageSquare size={22} />} title="Chat Credits" value={`${usage?.messages_left || 0} left`} color="bg-purple-500" />
+              <StatCard icon={<MessageSquare size={22} />} title="Chat Credits" value={`${Number(usage?.messages_left || 0).toFixed(2)} left`} color="bg-purple-500" />
               <StatCard icon={<ShieldCheck size={22} />} title="Plan Level" value={usage?.plan_type || 'Free'} color={themeData.colors.brand} />
             </div>
           </section>

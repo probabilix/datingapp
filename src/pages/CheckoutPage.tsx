@@ -25,7 +25,21 @@ const CheckoutPage: React.FC = () => {
   const customType = searchParams.get('type');
   const customCredits = searchParams.get('credits');
 
+  // Toast State
+  const [toast, setToast] = useState<{ message: string; type: 'error' | 'success'; show: boolean }>({ message: '', type: 'error', show: false });
+
+  const showToast = (message: string, type: 'error' | 'success' = 'error') => {
+    setToast({ message, type, show: true });
+    setTimeout(() => setToast(prev => ({ ...prev, show: false })), 5000);
+  };
+
   useEffect(() => {
+    // Edge Case: Handle 'Free' Plan Selection
+    if (planId === 'Free') {
+      navigate('/dashboard');
+      return;
+    }
+
     const init = async () => {
       // Fetch settings & coupons concurrently
       const [, couponsRes, plansRes] = await Promise.all([
@@ -79,17 +93,61 @@ const CheckoutPage: React.FC = () => {
 
   const finalPrice = purchaseItem ? Math.max(0, purchaseItem.price - discount) : 0;
 
-  // Modular payment calls for 3rd party redirects
-  const handleRedirectPayment = async (gatewayId: string) => {
+
+  const handleStripePayment = async () => {
     setIsProcessing(true);
-    const response = await fetch(`${API_BASE_URL}/api/payments/${gatewayId}/create-order`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount: finalPrice, itemName: purchaseItem?.name })
-    });
-    const data = await response.json();
-    if (data.url) window.location.href = data.url;
-    setIsProcessing(false);
+    setCouponError(''); // Clear any previous errors
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { navigate('/login'); return; }
+
+      // 1. Prepare Payload
+      const payload: any = {
+        userId: session.user.id,
+        type: isCustom ? 'credit' : 'plan',
+        couponCode: appliedCoupon ? appliedCoupon.code : undefined // Send Coupon Code
+      };
+
+      if (isCustom) {
+        payload.amount = parseFloat(customAmount || '0');
+        payload.credits = parseInt(customCredits || '0');
+        payload.creditType = customType; // 'voice' or 'chat'
+      } else {
+        payload.planName = planId;
+      }
+
+      // 2. Call Backend
+      const response = await fetch(`${API_BASE_URL}/api/payments/stripe/create-session`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Payment initialization failed');
+      }
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL returned');
+      }
+
+    } catch (err: any) {
+      console.error("Payment Error:", err);
+      // If error is about plan upgrade, show toast and redirect
+      if (err.message.includes('Upgrade')) {
+        showToast("Custom credits are only available for Pro and Elite members. Redirecting to billing...", 'error');
+        setTimeout(() => navigate('/billing'), 3000);
+      } else {
+        showToast(`Payment Error: ${err.message}`, 'error');
+      }
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   if (loading) {
@@ -115,9 +173,22 @@ const CheckoutPage: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: themeData.colors.bgSoft }}>
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className={`fixed top-5 right-5 z-50 px-6 py-4 rounded-xl shadow-2xl animate-in slide-in-from-top-5 duration-300 ${toast.type === 'error' ? 'bg-red-500 text-white' : 'bg-green-500 text-white'}`}>
+          <div className="flex items-center gap-3">
+            {toast.type === 'error' ? (
+              <div className="bg-white/20 p-1 rounded-full"><ShieldCheck size={16} /></div>
+            ) : (
+              <div className="bg-white/20 p-1 rounded-full"><ShieldCheck size={16} /></div>
+            )}
+            <p className="font-bold text-sm">{toast.message}</p>
+          </div>
+        </div>
+      )}
+
       <main className="flex-grow pt-10 pb-20 px-6 max-w-6xl mx-auto w-full">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-
           {/* LEFT: Order Summary & Coupon System */}
           <div className="space-y-6">
             <button onClick={() => navigate('/billing')} className="flex items-center gap-2 text-sm font-bold opacity-40 hover:opacity-100 mb-4 cursor-pointer">
@@ -131,7 +202,7 @@ const CheckoutPage: React.FC = () => {
                 <div className="flex-1">
                   <h3 className="font-bold text-2xl">{purchaseItem.name}</h3>
                   <p className="text-[10px] font-black uppercase text-gray-300">
-                    {purchaseItem.credits ? `${purchaseItem.credits} ${purchaseItem.type === 'voice' ? 'Minutes' : 'Messages'}` : 'PCI-DSS Encrypted Asset'}
+                    {purchaseItem.credits ? `${purchaseItem.credits} ${purchaseItem.type === 'voice' ? 'Minutes' : 'Credits'}` : 'PCI-DSS Encrypted Asset'}
                   </p>
                 </div>
                 <div className="font-black text-3xl">${purchaseItem.price}</div>
@@ -180,54 +251,36 @@ const CheckoutPage: React.FC = () => {
               {/* Direct Stripe Form Area */}
               <div className="p-8 border-2 border-[#E94057]/10 rounded-[2.5rem] bg-pink-50/5">
                 <div className="flex items-center gap-2 mb-6 font-bold text-xs uppercase text-[#E94057]">
-                  <CreditCard size={16} /> Direct Card Payment
+                  <ShieldCheck size={16} /> Secure Payment
                 </div>
-                <div className="space-y-5">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-gray-400 uppercase px-1">Card number</label>
-                    <input placeholder="1234 1234 1234 1234" className="w-full p-5 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-medium" />
+
+                <div className="text-center py-6 space-y-4">
+                  <div className="flex justify-center gap-4 text-gray-400 mb-4">
+                    {/* Visa/Mastercard Icons or placeholders */}
+                    <div className="w-10 h-6 bg-gray-100 rounded"></div>
+                    <div className="w-10 h-6 bg-gray-100 rounded"></div>
+                    <div className="w-10 h-6 bg-gray-100 rounded"></div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-gray-400 uppercase px-1">Expiry</label>
-                      <input placeholder="MM / YY" className="w-full p-5 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-medium" />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-gray-400 uppercase px-1">CVC</label>
-                      <input placeholder="123" className="w-full p-5 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-medium" />
-                    </div>
-                  </div>
+                  <p className="text-sm text-gray-500 font-medium">
+                    You will be redirected to Stripe's secure checkout page to complete your purchase.
+                  </p>
                 </div>
+
                 <button
                   disabled={isProcessing}
-                  className="w-full py-6 bg-[#E94057] text-white font-black rounded-2xl mt-8 shadow-xl uppercase text-xs hover:brightness-110 active:scale-95 transition-all cursor-pointer"
+                  onClick={handleStripePayment}
+                  className="w-full py-6 bg-[#E94057] text-white font-black rounded-2xl mt-4 shadow-xl uppercase text-xs hover:brightness-110 active:scale-95 transition-all cursor-pointer"
                 >
-                  Authorize ${finalPrice.toFixed(2)}
+                  {isProcessing ? 'Processing...' : `Pay ${finalPrice.toFixed(2)} with Stripe`}
                 </button>
+
+                <div className="mt-4 text-center">
+                  <p className="text-[10px] text-gray-400 font-bold uppercase">No card details are stored on our servers</p>
+                </div>
               </div>
 
               {/* 3rd Party Redirect Buttons */}
-              <div className="space-y-4">
-                <div className="relative flex items-center justify-center py-4">
-                  <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-100"></div></div>
-                  <span className="relative bg-white px-4 text-[10px] font-bold text-gray-300 uppercase tracking-widest">Or, use 3rd party provider</span>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <button
-                    onClick={() => handleRedirectPayment('paypal')}
-                    className="py-5 bg-[#003087] text-white font-black rounded-2xl flex items-center justify-center gap-2 hover:opacity-90 transition-all text-xs cursor-pointer"
-                  >
-                    PayPal
-                  </button>
-                  <button
-                    onClick={() => handleRedirectPayment('razorpay')}
-                    className="py-5 bg-[#2B3481] text-white font-black rounded-2xl flex items-center justify-center gap-2 hover:opacity-90 transition-all text-xs cursor-pointer"
-                  >
-                    Razorpay
-                  </button>
-                </div>
-              </div>
+              {/* 3rd Party Redirects Removed as per request */}
             </div>
           </div>
 

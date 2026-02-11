@@ -3,17 +3,20 @@ import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '../lib/supabaseClient';
 import { themeData } from '../data/themeData';
-// import { pricingData } from '../data/pricingData';
 import { CreditCard, ChevronRight, History, ChevronLeft } from 'lucide-react';
 import PricingCard from '../components/PricingCard';
+import { API_BASE_URL } from '../config/api';
 
 const BillingPage: React.FC = () => {
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<any>(null);
+  // const [profile, setProfile] = useState<any>(null); // Deprecated in favor of user_usage
+  const [userUsage, setUserUsage] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'plans' | 'addons'>('plans');
+  const [processingBilling, setProcessingBilling] = useState(false);
 
   const [plans, setPlans] = useState<any[]>([]);
+  const [transactions, setTransactions] = useState<any[]>([]);
   const [creditRates, setCreditRates] = useState<any>({});
   const [customAmount, setCustomAmount] = useState(10);
   const [customType, setCustomType] = useState<'voice' | 'chat'>('voice');
@@ -25,19 +28,26 @@ const BillingPage: React.FC = () => {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) { navigate('/login'); return; }
 
-        // 1. Fetch Profile
-        const profilePromise = supabase.from('profiles').select('*').eq('id', session.user.id).single();
+        // 1. Fetch User Usage (Real Plan Status)
+        const usagePromise = supabase.from('user_usage').select('*').eq('user_id', session.user.id).single();
 
         // 2. Fetch Plans & Rates
         const plansPromise = supabase.from('plan_settings').select('*').order('price_usd');
         const ratesPromise = supabase.from('credit_rates').select('*');
 
-        const [profileRes, plansRes, ratesRes] = await Promise.all([profilePromise, plansPromise, ratesPromise]);
+        // 3. Fetch Transactions (Real History)
+        const txPromise = supabase
+          .from('transactions')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .eq('status', 'completed')
+          .order('created_at', { ascending: false });
 
-        if (profileRes.data) setProfile(profileRes.data);
+        const [usageRes, plansRes, ratesRes, txRes] = await Promise.all([usagePromise, plansPromise, ratesPromise, txPromise]);
 
-        if (plansRes.error) console.error("Error plans:", plansRes.error);
+        if (usageRes.data) setUserUsage(usageRes.data);
         if (plansRes.data) setPlans(plansRes.data);
+        if (txRes.data) setTransactions(txRes.data);
 
         if (ratesRes.data) {
           const rates = ratesRes.data.reduce((acc: any, curr: any) => ({
@@ -58,11 +68,42 @@ const BillingPage: React.FC = () => {
 
   // Handler for Plan Selection
   const handlePlanSelect = (planName: string) => {
-    navigate(`/checkout?plan=${planName}`);
+    // If user already has a paid plan, redirect to Portal for upgrades/switches
+    if (userUsage?.subscription_status === 'active' && userUsage?.plan_type !== 'Free') {
+      handleManageBilling();
+    } else {
+      navigate(`/checkout?plan=${planName}`);
+    }
   };
 
   const handleCustomTopUp = () => {
     navigate(`/checkout?custom=true&type=${customType}&amount=${customAmount}&credits=${customCredits}`);
+  };
+
+  const handleManageBilling = async () => {
+    setProcessingBilling(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const response = await fetch(`${API_BASE_URL}/api/payments/stripe/create-portal-session`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: session.user.id })
+      });
+
+      const data = await response.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert('Could not redirect to billing portal. ' + (data.error || ''));
+      }
+    } catch (error) {
+      console.error("Billing Portal Error:", error);
+      alert("Failed to load billing portal.");
+    } finally {
+      setProcessingBilling(false);
+    }
   };
 
   const customCredits = React.useMemo(() => {
@@ -70,6 +111,28 @@ const BillingPage: React.FC = () => {
     return Math.floor(customAmount * rate);
   }, [customAmount, customType, creditRates]);
 
+
+  // Helper to format transaction description
+  const getTransactionDescription = (tx: any) => {
+    switch (tx.type) {
+      case 'plan_purchase':
+        return `Subscription: ${tx.metadata?.planName || 'Pro'}`;
+      case 'plan_upgrade':
+        return `Plan Upgrade`;
+      case 'plan_downgrade':
+        return `Plan Downgrade`;
+      case 'subscription_renewal':
+        return `Subscription Renewal`;
+      case 'subscription_cancellation':
+        return `Subscription Cancelled`;
+      case 'subscription_resumption':
+        return `Subscription Resumed`;
+      case 'credit_topup':
+        return `Credit Top-up`;
+      default:
+        return 'Transaction';
+    }
+  };
 
   if (loading) {
     return (
@@ -102,20 +165,32 @@ const BillingPage: React.FC = () => {
               <div>
                 <span className="text-[10px] font-black uppercase opacity-30 tracking-[0.2em]">Current Status</span>
                 <h2 className="text-4xl font-bold mt-1" style={{ color: themeData.colors.textHeading, fontFamily: 'DM Serif Display' }}>
-                  {profile?.plan_type || 'Trial'} Plan
+                  {userUsage?.plan_type || 'Free'} Plan
                 </h2>
-                <p className="text-gray-400 mt-2">Active subscription for {profile?.email}</p>
+                <div className="flex gap-2 mt-2">
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${userUsage?.subscription_status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                    }`}>
+                    {userUsage?.subscription_status || 'Inactive'}
+                  </span>
+                </div>
               </div>
               <div className="flex flex-col items-end gap-2">
-                <button className="px-8 py-4 rounded-2xl bg-[#12172D] text-white font-bold hover:scale-105 transition-all shadow-lg flex items-center gap-2 cursor-pointer">
-                  Manage Billing <CreditCard size={18} />
+                <button
+                  onClick={handleManageBilling}
+                  disabled={processingBilling || userUsage?.plan_type === 'Free' || !userUsage?.plan_type}
+                  className="px-8 py-4 rounded-2xl bg-[#12172D] text-white font-bold hover:scale-105 transition-all shadow-lg flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {processingBilling ? 'Loading...' : 'Manage Billing'} <CreditCard size={18} />
                 </button>
+                {(!userUsage?.plan_type || userUsage?.plan_type === 'Free') && (
+                  <p className="text-[10px] text-gray-400">Subscribe to manage billing</p>
+                )}
               </div>
             </div>
 
             <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm text-center flex flex-col justify-center">
               <span className="text-[10px] font-black uppercase opacity-30 tracking-[0.2em] mb-2">Available Time</span>
-              <div className="text-4xl font-black text-[#E94057] mb-1">{profile?.talk_time_minutes || 0}m</div>
+              <div className="text-4xl font-black text-[#E94057] mb-1">{userUsage?.voice_minutes_left || 0}m</div>
               <p className="text-xs font-bold text-gray-300 uppercase tracking-tighter">Voice Minutes Left</p>
             </div>
           </section>
@@ -140,23 +215,57 @@ const BillingPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {activeTab === 'plans' ? (
               plans.length > 0 ? (
-                plans.map((plan) => (
-                  <PricingCard
-                    key={plan.plan_name}
-                    name={plan.plan_name}
-                    price={plan.price_usd}
-                    period="/month"
-                    features={plan.features || []}
-                    isPopular={plan.plan_name === 'Elite'}
-                    isCurrent={profile?.plan_type?.toLowerCase() === plan.plan_name.toLowerCase()}
-                    onSelect={() => handlePlanSelect(plan.plan_name)}
-                    buttonText={plan.button_text}
-                  />
-                ))
+                plans.map((plan) => {
+                  const currentPlanName = userUsage?.plan_type || 'Free';
+                  const isCurrent = currentPlanName.toLowerCase() === plan.plan_name.toLowerCase();
+
+                  // LOGIC: Determine Button State
+                  let buttonText = plan.button_text;
+                  let isDisabled = false;
+                  let onClickAction = () => handlePlanSelect(plan.plan_name);
+
+                  if (isCurrent) {
+                    buttonText = "Current Plan";
+                    isDisabled = true;
+                  } else {
+                    // Logic for NON-current plans
+                    if (currentPlanName === 'Elite') {
+                      // Elite User: Cannot switch to Pro or Free directly (Must Cancel)
+                      buttonText = "Downgrade Unavailable";
+                      isDisabled = true;
+                    } else if (currentPlanName === 'Pro') {
+                      if (plan.plan_name === 'Elite') {
+                        buttonText = "Upgrade"; // Can Upgrade
+                      } else {
+                        // Pro User looking at Free (Downgrade)
+                        buttonText = "Downgrade Unavailable";
+                        isDisabled = true;
+                      }
+                    } else {
+                      // Free User: Can Subscribe to Pro or Elite
+                      buttonText = "Upgrade";
+                    }
+                  }
+
+                  return (
+                    <PricingCard
+                      key={plan.plan_name}
+                      name={plan.plan_name}
+                      price={plan.price_usd}
+                      period="/month"
+                      features={plan.features || []}
+                      isPopular={plan.plan_name === 'Elite'}
+                      isCurrent={isCurrent}
+                      onSelect={onClickAction}
+                      buttonText={buttonText}
+                      disabled={isDisabled}
+                    />
+                  );
+                })
               ) : (
                 <div className="col-span-1 md:col-span-3 text-center py-12 bg-white rounded-[2rem]">
                   <h3 className="text-xl font-bold text-gray-400">No Plans Available</h3>
-                  <p className="text-xs text-red-400 mt-2 font-mono">DB Error or Emtpy Table (Check RLS Policies)</p>
+                  <p className="text-xs text-red-400 mt-2 font-mono">DB Error or Emtpy Table</p>
                 </div>
               )
             ) : (
@@ -175,7 +284,7 @@ const BillingPage: React.FC = () => {
                       onClick={() => setCustomType('chat')}
                       className={`px-6 py-3 rounded-xl font-bold text-sm transition-all cursor-pointer ${customType === 'chat' ? 'bg-white shadow-md text-[#E94057]' : 'text-gray-400'}`}
                     >
-                      Chat Messages
+                      Chat Credits
                     </button>
                   </div>
 
@@ -201,11 +310,11 @@ const BillingPage: React.FC = () => {
                     </div>
 
                     <div className="text-center">
-                      <div className="text-5xl font-black text-[#E94057] mb-2 animate-in zoom-in duration-300 key={customAmount}">
+                      <div className="text-5xl font-black text-[#E94057] mb-2 animate-in zoom-in duration-300" key={customAmount}>
                         {customCredits}
                       </div>
                       <p className="text-gray-400 font-bold uppercase tracking-widest text-xs">
-                        {customType === 'voice' ? 'Voice Minutes' : 'Chat Messages'}
+                        {customType === 'voice' ? 'Voice Minutes' : 'Chat Credits'}
                       </p>
                     </div>
 
@@ -230,22 +339,48 @@ const BillingPage: React.FC = () => {
               </button>
             </div>
             <div className="bg-white rounded-[2.5rem] border border-gray-100 overflow-hidden shadow-sm">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="border-b border-gray-50 text-[10px] uppercase tracking-widest text-gray-400">
-                    <th className="px-10 py-6">Order Details</th>
-                    <th className="px-10 py-6">Status</th>
-                    <th className="px-10 py-6 text-right">Total Amount</th>
-                  </tr>
-                </thead>
-                <tbody className="text-sm font-medium">
-                  <tr className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                    <td className="px-10 py-6 font-bold text-[#12172D]">Initial Trial Access</td>
-                    <td className="px-10 py-6"><span className="px-3 py-1 bg-green-50 text-green-600 rounded-full text-[10px] font-bold uppercase">Fulfilled</span></td>
-                    <td className="px-10 py-6 text-right font-black">$0.00</td>
-                  </tr>
-                </tbody>
-              </table>
+              {transactions.length > 0 ? (
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-gray-50 text-[10px] uppercase tracking-widest text-gray-400">
+                      <th className="px-10 py-6">Order Details</th>
+                      <th className="px-10 py-6">Date</th>
+                      <th className="px-10 py-6">Status</th>
+                      <th className="px-10 py-6 text-right">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-sm font-medium">
+                    {transactions.map((tx) => (
+                      <tr key={tx.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                        <td className="px-10 py-6">
+                          <span className="font-bold text-[#12172D] block">
+                            {getTransactionDescription(tx)}
+                          </span>
+                          <span className="text-xs text-gray-400">
+                            {tx.metadata?.credits ? `${tx.metadata.credits} ${tx.metadata.creditType}` : ''}
+                          </span>
+                        </td>
+                        <td className="px-10 py-6 text-gray-500 text-xs">
+                          {new Date(tx.created_at).toLocaleDateString()}
+                        </td>
+                        <td className="px-10 py-6">
+                          <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${tx.status === 'completed' ? 'bg-green-50 text-green-600' : 'bg-yellow-50 text-yellow-600'
+                            }`}>
+                            {tx.status}
+                          </span>
+                        </td>
+                        <td className="px-10 py-6 text-right font-black">
+                          ${tx.amount?.toFixed(2)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div className="p-10 text-center text-gray-400 text-sm">
+                  No transactions found.
+                </div>
+              )}
             </div>
           </section>
         </div>

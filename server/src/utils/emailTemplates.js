@@ -37,18 +37,18 @@ const getBaseTemplate = (title, bodyContent, actionButton = null) => `
 `;
 
 export const getResetPasswordTemplate = (resetLink) => {
-    return getBaseTemplate(
-        "Reset Your Password",
-        "<p>We received a request to reset the password for your account. No worries, it happens to the best of us!</p><p>Click the button below to securely reset your password. This link is valid for 24 hours.</p>",
-        { text: "Reset Password", url: resetLink }
-    );
+  return getBaseTemplate(
+    "Reset Your Password",
+    "<p>We received a request to reset the password for your account. No worries, it happens to the best of us!</p><p>Click the button below to securely reset your password. This link is valid for 24 hours.</p>",
+    { text: "Reset Password", url: resetLink }
+  );
 };
 
 export const getWelcomeTemplate = (userName) => {
-    const name = userName ? userName.split(' ')[0] : 'there';
-    return getBaseTemplate(
-        `Welcome, ${name}!`,
-        `<p>We are thrilled to have you join our community. Your journey to better relationships and confidence starts now.</p><p>Our AI advisors are ready to chat, listen, and guide you 24/7. Explore our dashboard to get started.</p>`,
-        { text: "Go to Dashboard", url: `${process.env.CLIENT_URL || 'http://localhost:5173'}/dashboard` }
-    );
+  const name = userName ? userName.split(' ')[0] : 'there';
+  return getBaseTemplate(
+    `Welcome, ${name}!`,
+    `<p>We are thrilled to have you join our community. Your journey to better relationships and confidence starts now.</p><p>Our AI advisors are ready to chat, listen, and guide you 24/7. Explore our dashboard to get started.</p>`,
+    { text: "Go to Dashboard", url: `${process.env.CLIENT_URL}/dashboard` }
+  );
 };
