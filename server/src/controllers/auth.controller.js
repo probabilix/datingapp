@@ -4,17 +4,22 @@ import { getResetPasswordTemplate } from '../utils/emailTemplates.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
-// Create a Supabase Client with SERVICE_ROLE key (Admin)
-const supabaseAdmin = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY,
-    {
-        auth: {
-            autoRefreshToken: false,
-            persistSession: false
-        }
+// Helper to get safe admin client
+const getAdminClient = () => {
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        throw new Error("Supabase Admin Keys missing in environment");
     }
-);
+    return createClient(
+        process.env.SUPABASE_URL,
+        process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY,
+        {
+            auth: {
+                autoRefreshToken: false,
+                persistSession: false
+            }
+        }
+    );
+};
 
 export const forgotPassword = async (req, res) => {
     const { email } = req.body;
@@ -26,6 +31,9 @@ export const forgotPassword = async (req, res) => {
     const start = Date.now();
     try {
         console.log(`[ForgotPwd] Started processing for ${email}`);
+
+        // Lazy Init
+        const supabaseAdmin = getAdminClient();
 
         // 1. Generate Link via Supabase Admin
         const t1 = Date.now();

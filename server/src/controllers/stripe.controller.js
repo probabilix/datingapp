@@ -3,14 +3,18 @@ import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 dotenv.config();
 
-// Initialize Stripe
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+// Lazy Loaders to prevent startup crashes
+const getStripe = () => {
+  if (!process.env.STRIPE_SECRET_KEY) throw new Error("Stripe Secret Key missing");
+  return new Stripe(process.env.STRIPE_SECRET_KEY);
+};
 
-// Initialize Supabase Admin (Service Role) for DB updates
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+const getSupabase = () => {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) throw new Error("Supabase Admin Keys missing");
+  return createClient(url, key);
+};
 
 // --- Helper: Get or Create Portal Configuration ---
 const getOrCreatePortalConfig = async (userPlan) => {
@@ -24,6 +28,7 @@ const getOrCreatePortalConfig = async (userPlan) => {
 
   try {
     // 1. Check if config exists
+    const stripe = getStripe();
     const configs = await stripe.billingPortal.configurations.list({ limit: 10 });
     const existingConfig = configs.data.find(c => c.metadata && c.metadata.type === configName);
 
@@ -69,6 +74,8 @@ const getOrCreatePortalConfig = async (userPlan) => {
 // --- 1. Create Checkout Session ---
 export const createStripeSession = async (req, res) => {
   try {
+    const stripe = getStripe();
+    const supabase = getSupabase();
     const { userId, type, amount, planName, credits, creditType, couponCode } = req.body;
 
     if (!userId || !type) return res.status(400).json({ error: "Missing required fields" });
@@ -204,6 +211,8 @@ export const createStripeSession = async (req, res) => {
 // --- 3. Create Portal Session (For Manage Billing) ---
 export const createPortalSession = async (req, res) => {
   try {
+    const stripe = getStripe();
+    const supabase = getSupabase();
     const { userId } = req.body;
     if (!userId) return res.status(400).json({ error: "User ID required" });
 
@@ -245,6 +254,9 @@ export const createPortalSession = async (req, res) => {
 export const handleStripeWebhook = async (req, res) => {
   const sig = req.headers['stripe-signature'];
   let event;
+
+  const stripe = getStripe();
+  const supabase = getSupabase();
 
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);

@@ -3,16 +3,24 @@ import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 dotenv.config();
 
-// Create Admin Client to fetch secrets (User should not have access to system_settings in frontend)
-const supabaseAdmin = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY,
-    { auth: { persistSession: false } }
-);
+// Helper to get safe admin client
+const getAdminClient = () => {
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        throw new Error("Supabase Admin Keys missing in environment");
+    }
+    return createClient(
+        process.env.SUPABASE_URL,
+        process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY,
+        { auth: { persistSession: false } }
+    );
+};
 
 export const sendEmail = async (to, subject, html) => {
     console.log("----- Starting Email Send Process -----");
     try {
+        // Lazy Init
+        const supabaseAdmin = getAdminClient();
+
         // 1. Dynamic Fetch: Get SMTP credentials from Database
         console.log("1. Fetching settings from Supabase System Settings...");
         const { data: settings, error } = await supabaseAdmin

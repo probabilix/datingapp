@@ -2,12 +2,17 @@ import { sendEmail } from '../config/email.js';
 import { getWelcomeTemplate } from '../utils/emailTemplates.js';
 import { createClient } from '@supabase/supabase-js';
 
-// Admin client for profile updates
-const supabaseAdmin = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY,
-    { auth: { persistSession: false } }
-);
+// Helper to get safe admin client
+const getAdminClient = () => {
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        throw new Error("Supabase Admin Keys missing in environment");
+    }
+    return createClient(
+        process.env.SUPABASE_URL,
+        process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY,
+        { auth: { persistSession: false } }
+    );
+};
 
 export const sendWelcomeEmail = async (req, res) => {
     const { email, name, userId } = req.body;
@@ -19,6 +24,9 @@ export const sendWelcomeEmail = async (req, res) => {
     }
 
     try {
+        // Lazy Init
+        const supabaseAdmin = getAdminClient();
+
         // 1. Atomic Idempotency Lock
         // We attempt to set the flag to TRUE only if it is currently FALSE.
         // If this update affects 0 rows, it means the flag was already TRUE (race condition or previous run).

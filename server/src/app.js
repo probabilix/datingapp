@@ -39,7 +39,7 @@ app.use('/api/notifications', notificationRoutes);
 // Apply Stripe routes (Webhook needs raw body, handled inside router or before json middleware)
 app.use('/api/payments/stripe', stripeRoutes);
 
-// import healthRoutes from './routes/health.routes.js';
-// app.use('/api/health', healthRoutes);
+import healthRoutes from './routes/health.routes.js';
+app.use('/api/health', healthRoutes);
 
 export default app;
