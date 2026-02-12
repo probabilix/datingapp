@@ -59,6 +59,10 @@ export const sendWelcomeEmail = async (req, res) => {
     } catch (error) {
         console.error("Welcome Email Error:", error);
         // We keep the flag TRUE to prevent infinite retry loops.
-        res.status(500).json({ error: "Failed to queue welcome email" });
+        res.status(500).json({
+            error: "Failed to queue welcome email",
+            details: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     }
 };

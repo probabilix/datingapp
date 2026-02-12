@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { API_BASE_URL } from '../config/api';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '../lib/supabaseClient';
@@ -59,7 +60,7 @@ const DashboardPage: React.FC = () => {
           welcomeEmailTriggered.current = true; // Lock immediately
 
           // Don't await, let it fail silently or succeed in background
-          fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/notifications/welcome`, {
+          fetch(`${API_BASE_URL}/api/notifications/welcome`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

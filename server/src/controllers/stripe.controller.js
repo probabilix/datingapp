@@ -191,9 +191,13 @@ export const createStripeSession = async (req, res) => {
 
     res.json({ url: session.url });
 
-  } catch (err) {
-    console.error("Stripe Session Error:", err);
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    console.error("Stripe Session Error:", error);
+    res.status(500).json({
+      error: "Failed to create checkout session",
+      details: error.message,
+      hint: "Check server logs for Supabase/Stripe keys"
+    });
   }
 };
 

@@ -62,6 +62,8 @@ export const forgotPassword = async (req, res) => {
         const totalDuration = Date.now() - start;
         res.status(500).json({
             error: error.message || "Failed to send reset email",
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+            details: error.toString(),
             timings: { total: totalDuration }
         });
     }
