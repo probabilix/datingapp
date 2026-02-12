@@ -49,6 +49,6 @@ export const getWelcomeTemplate = (userName) => {
   return getBaseTemplate(
     `Welcome, ${name}!`,
     `<p>We are thrilled to have you join our community. Your journey to better relationships and confidence starts now.</p><p>Our AI advisors are ready to chat, listen, and guide you 24/7. Explore our dashboard to get started.</p>`,
-    { text: "Go to Dashboard", url: `${process.env.CLIENT_URL}/dashboard` }
+    { text: "Go to Dashboard", url: `${process.env.CLIENT_URL || 'http://localhost:5173'}/dashboard` }
   );
 };

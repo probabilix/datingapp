@@ -5,7 +5,8 @@ import { supabase } from '../lib/supabaseClient';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { themeData } from '../data/themeData';
-import { Loader2, MapPin, Heart, Quote } from 'lucide-react';
+import { MapPin, Heart, Quote } from 'lucide-react';
+import ImageWithSkeleton from '../components/ImageWithSkeleton';
 
 interface SuccessStory {
   id: string;
@@ -68,8 +69,20 @@ const SuccessStoriesPage: React.FC = () => {
           </div>
 
           {loading ? (
-            <div className="flex justify-center py-20">
-              <Loader2 className="animate-spin text-gray-400" size={32} />
+            <div className="flex flex-col gap-24 md:gap-32">
+              {[1, 2].map((i) => (
+                <div key={i} className={`flex flex-col md:flex-row gap-8 md:gap-16 items-center ${i % 2 === 0 ? 'md:flex-row-reverse' : ''}`}>
+                  <div className="w-full md:w-1/2">
+                    <div className="aspect-[4/5] md:aspect-[3/4] rounded-[2.5rem] bg-gray-100 animate-pulse"></div>
+                  </div>
+                  <div className="w-full md:w-1/2 space-y-6">
+                    <div className="h-12 w-12 bg-gray-100 rounded-full animate-pulse"></div>
+                    <div className="h-10 w-3/4 bg-gray-100 rounded animate-pulse"></div>
+                    <div className="h-32 w-full bg-gray-100 rounded animate-pulse"></div>
+                    <div className="h-4 w-32 bg-gray-100 rounded animate-pulse"></div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
             <div className="flex flex-col gap-24 md:gap-32">
@@ -81,8 +94,8 @@ const SuccessStoriesPage: React.FC = () => {
                   {/* Image Section */}
                   <div className="w-full md:w-1/2">
                     <div className="relative aspect-[4/5] md:aspect-[3/4] rounded-[2.5rem] overflow-hidden shadow-xl">
-                      <img
-                        src={story.image_url}
+                      <ImageWithSkeleton
+                        src={`${story.image_url}?width=600&format=webp`}
                         alt={story.names}
                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
                       />

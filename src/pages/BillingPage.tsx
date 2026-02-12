@@ -340,42 +340,76 @@ const BillingPage: React.FC = () => {
             </div>
             <div className="bg-white rounded-[2.5rem] border border-gray-100 overflow-hidden shadow-sm">
               {transactions.length > 0 ? (
-                <table className="w-full text-left">
-                  <thead>
-                    <tr className="border-b border-gray-50 text-[10px] uppercase tracking-widest text-gray-400">
-                      <th className="px-10 py-6">Order Details</th>
-                      <th className="px-10 py-6">Date</th>
-                      <th className="px-10 py-6">Status</th>
-                      <th className="px-10 py-6 text-right">Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody className="text-sm font-medium">
+                <>
+                  {/* Desktop Table View */}
+                  <table className="w-full text-left hidden md:table">
+                    <thead>
+                      <tr className="border-b border-gray-50 text-[10px] uppercase tracking-widest text-gray-400">
+                        <th className="px-10 py-6">Order Details</th>
+                        <th className="px-10 py-6">Date</th>
+                        <th className="px-10 py-6">Status</th>
+                        <th className="px-10 py-6 text-right">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-sm font-medium">
+                      {transactions.map((tx) => (
+                        <tr key={tx.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                          <td className="px-10 py-6">
+                            <span className="font-bold text-[#12172D] block">
+                              {getTransactionDescription(tx)}
+                            </span>
+                            <span className="text-xs text-gray-400">
+                              {tx.metadata?.credits ? `${tx.metadata.credits} ${tx.metadata.creditType}` : ''}
+                            </span>
+                          </td>
+                          <td className="px-10 py-6 text-gray-500 text-xs">
+                            {new Date(tx.created_at).toLocaleDateString()}
+                          </td>
+                          <td className="px-10 py-6">
+                            <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${tx.status === 'completed' ? 'bg-green-50 text-green-600' : 'bg-yellow-50 text-yellow-600'
+                              }`}>
+                              {tx.status}
+                            </span>
+                          </td>
+                          <td className="px-10 py-6 text-right font-black">
+                            ${tx.amount?.toFixed(2)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+
+                  {/* Mobile Card View */}
+                  <div className="md:hidden flex flex-col gap-4 p-6">
                     {transactions.map((tx) => (
-                      <tr key={tx.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                        <td className="px-10 py-6">
-                          <span className="font-bold text-[#12172D] block">
-                            {getTransactionDescription(tx)}
+                      <div key={tx.id} className="bg-gray-50 rounded-2xl p-5 flex flex-col gap-3">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <span className="font-bold text-[#12172D] block text-sm">
+                              {getTransactionDescription(tx)}
+                            </span>
+                            <span className="text-[10px] text-gray-400 uppercase tracking-wide">
+                              {new Date(tx.created_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <span className="font-black text-lg text-[#E94057]">
+                            ${tx.amount?.toFixed(2)}
                           </span>
+                        </div>
+
+                        <div className="flex justify-between items-center border-t border-gray-200 pt-3 mt-1">
                           <span className="text-xs text-gray-400">
-                            {tx.metadata?.credits ? `${tx.metadata.credits} ${tx.metadata.creditType}` : ''}
+                            {tx.metadata?.credits ? `${tx.metadata.credits} ${tx.metadata.creditType}` : 'Subscription'}
                           </span>
-                        </td>
-                        <td className="px-10 py-6 text-gray-500 text-xs">
-                          {new Date(tx.created_at).toLocaleDateString()}
-                        </td>
-                        <td className="px-10 py-6">
-                          <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${tx.status === 'completed' ? 'bg-green-50 text-green-600' : 'bg-yellow-50 text-yellow-600'
+                          <span className={`px-2 py-1 rounded-md text-[9px] font-bold uppercase ${tx.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
                             }`}>
                             {tx.status}
                           </span>
-                        </td>
-                        <td className="px-10 py-6 text-right font-black">
-                          ${tx.amount?.toFixed(2)}
-                        </td>
-                      </tr>
+                        </div>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+                </>
               ) : (
                 <div className="p-10 text-center text-gray-400 text-sm">
                   No transactions found.

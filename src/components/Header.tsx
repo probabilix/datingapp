@@ -167,6 +167,7 @@ const Header: React.FC = () => {
                         `https://ui-avatars.com/api/?name=${session.user.email}&background=FDEFF2&color=E94057&bold=true`
                       }
                       alt="User"
+                      referrerPolicy="no-referrer"
                       className="w-full h-full rounded-full"
                     />
                   </button>

@@ -5,7 +5,8 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { supabase } from '../lib/supabaseClient';
 import { themeData } from '../data/themeData';
-import { Loader2, Calendar, User } from 'lucide-react';
+import { Calendar, User } from 'lucide-react';
+import ImageWithSkeleton from '../components/ImageWithSkeleton';
 
 interface BlogPost {
   id: string;
@@ -70,16 +71,32 @@ const BlogsPage: React.FC = () => {
           </div>
 
           {loading ? (
-            <div className="flex justify-center py-20">
-              <Loader2 className="animate-spin text-gray-400" size={32} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="bg-white rounded-[24px] md:rounded-[32px] overflow-hidden shadow-sm border border-black/5 flex flex-col h-full">
+                  <div className="h-48 md:h-56 bg-gray-100 animate-pulse"></div>
+                  <div className="p-6 md:p-8 flex flex-col flex-grow gap-4">
+                    <div className="flex gap-4">
+                      <div className="h-3 w-20 bg-gray-100 rounded animate-pulse"></div>
+                      <div className="h-3 w-20 bg-gray-100 rounded animate-pulse"></div>
+                    </div>
+                    <div className="h-8 w-3/4 bg-gray-100 rounded animate-pulse"></div>
+                    <div className="space-y-2">
+                      <div className="h-3 w-full bg-gray-100 rounded animate-pulse"></div>
+                      <div className="h-3 w-full bg-gray-100 rounded animate-pulse"></div>
+                      <div className="h-3 w-2/3 bg-gray-100 rounded animate-pulse"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
               {posts.map((post) => (
                 <Link to={`/blog/${post.slug}`} key={post.id} className="bg-white rounded-[24px] md:rounded-[32px] overflow-hidden shadow-sm border border-black/5 flex flex-col group hover:shadow-md transition-all duration-300">
-                  <div className="h-48 md:h-56 overflow-hidden">
-                    <img
-                      src={post.image_url}
+                  <div className="h-48 md:h-56">
+                    <ImageWithSkeleton
+                      src={`${post.image_url}?width=800&format=webp`}
                       alt={post.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />

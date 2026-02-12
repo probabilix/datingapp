@@ -10,6 +10,7 @@ const ResetPasswordPage: React.FC = () => {
   const [formData, setFormData] = useState({ pwd: '', confirm: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   // State to track if we allow the user to reset password
   const [canReset, setCanReset] = useState(false);
@@ -84,9 +85,14 @@ const ResetPasswordPage: React.FC = () => {
       const { error } = await supabase.auth.updateUser({ password: formData.pwd });
       if (error) throw error;
 
-      alert("Password updated successfully! Redirecting to login...");
+      // alert("Password updated successfully! Redirecting to login..."); 
+      setSuccess(true);
       await supabase.auth.signOut(); // Clean up session
-      navigate('/login');
+
+      // Auto redirect after 2 seconds
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
     } catch (err: any) {
       console.error(err);
       setError(err.message || "Failed to update password.");
@@ -153,43 +159,59 @@ const ResetPasswordPage: React.FC = () => {
         <div className="w-16 h-16 bg-[#FDEFF2] rounded-2xl flex items-center justify-center mx-auto mb-8">
           <span className="text-2xl" style={{ color: brandColor }}>♥</span>
         </div>
-        <h1 className="text-3xl font-bold mb-2" style={{ fontFamily: 'DM Serif Display', color: navyColor }}>New Password</h1>
-        <p className="text-sm opacity-50 mb-10">Choose a strong password to secure your account</p>
 
-        <form className="space-y-4 text-left" onSubmit={handleUpdate}>
-          <div className="relative">
-            <input
-              type={showPwd ? "text" : "password"}
-              placeholder="New Password"
-              required
-              className="w-full px-5 py-4 rounded-xl bg-gray-50 border-none outline-none focus:ring-2 focus:ring-[#E94057]/20 transition-all"
-              onChange={(e) => setFormData({ ...formData, pwd: e.target.value })}
-            />
-            <button type="button" onClick={() => setShowPwd(!showPwd)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black uppercase tracking-widest"
-              style={{ color: brandColor }}>
-              {showPwd ? "Hide" : "Show"}
+        {success ? (
+          <div className="animate-in fade-in zoom-in duration-300">
+            <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <h1 className="text-3xl font-bold mb-4" style={{ fontFamily: 'DM Serif Display', color: navyColor }}>Password Reset!</h1>
+            <p className="text-gray-500 mb-8">Your password has been updated successfully. Redirecting you to login...</p>
+            <button onClick={() => navigate('/login')} className="px-8 py-3 rounded-xl text-white font-bold transition-all shadow-lg hover:brightness-110" style={{ backgroundColor: brandColor }}>
+              Go to Login
             </button>
           </div>
+        ) : (
+          <>
+            <h1 className="text-3xl font-bold mb-2" style={{ fontFamily: 'DM Serif Display', color: navyColor }}>New Password</h1>
+            <p className="text-sm opacity-50 mb-10">Choose a strong password to secure your account</p>
 
-          <input
-            type="password"
-            placeholder="Confirm New Password"
-            required
-            className="w-full px-5 py-4 rounded-xl bg-gray-50 border-none outline-none focus:ring-2 focus:ring-[#E94057]/20 transition-all"
-            onChange={(e) => setFormData({ ...formData, confirm: e.target.value })}
-          />
+            <form className="space-y-4 text-left" onSubmit={handleUpdate}>
+              <div className="relative">
+                <input
+                  type={showPwd ? "text" : "password"}
+                  placeholder="New Password"
+                  required
+                  className="w-full px-5 py-4 rounded-xl bg-gray-50 border-none outline-none focus:ring-2 focus:ring-[#E94057]/20 transition-all"
+                  onChange={(e) => setFormData({ ...formData, pwd: e.target.value })}
+                />
+                <button type="button" onClick={() => setShowPwd(!showPwd)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black uppercase tracking-widest"
+                  style={{ color: brandColor }}>
+                  {showPwd ? "Hide" : "Show"}
+                </button>
+              </div>
 
-          {error && <p className="text-xs font-bold text-red-500">{error}</p>}
+              <input
+                type="password"
+                placeholder="Confirm New Password"
+                required
+                className="w-full px-5 py-4 rounded-xl bg-gray-50 border-none outline-none focus:ring-2 focus:ring-[#E94057]/20 transition-all"
+                onChange={(e) => setFormData({ ...formData, confirm: e.target.value })}
+              />
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-4 rounded-xl text-white font-bold shadow-lg transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
-            style={{ backgroundColor: brandColor }}>
-            {loading ? "Updating..." : "Update and Login"}
-          </button>
-        </form>
+              {error && <p className="text-xs font-bold text-red-500">{error}</p>}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-4 rounded-xl text-white font-bold shadow-lg transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+                style={{ backgroundColor: brandColor }}>
+                {loading ? "Updating..." : "Update and Login"}
+              </button>
+            </form>
+          </>
+        )}
       </div>
     </div>
   );

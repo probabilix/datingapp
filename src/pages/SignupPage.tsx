@@ -1,16 +1,12 @@
 import React, { useState } from 'react';
-import { API_BASE_URL } from '../config/api';
 import { Link, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import ReactMarkdown from 'react-markdown';
 import { themeData } from '../data/themeData';
-import { signupLegalContent } from '../data/signupLegalContent';
 import { supabase } from '../lib/supabaseClient';
 
 const SignupPage: React.FC = () => {
   const navigate = useNavigate();
   const [agreed, setAgreed] = useState(false);
-  const [showModal, setShowModal] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
   const [formData, setFormData] = useState({ name: '', email: '', pwd: '', confirm: '' });
   const [error, setError] = useState('');
@@ -41,23 +37,8 @@ const SignupPage: React.FC = () => {
       setError(authError.message);
     } else {
       // Trigger Welcome Email (Fire and forget)
-      // Trigger Welcome Email (Fire and forget ... but now with logs)
-      console.log(`[Signup] Triggering welcome email to ${API_BASE_URL}/api/notifications/welcome`);
-      fetch(`${API_BASE_URL}/api/notifications/welcome`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: formData.email, name: formData.name })
-      })
-        .then(async (res) => {
-          console.log(`[Signup] Email API Response Status: ${res.status}`);
-          if (!res.ok) {
-            const text = await res.text();
-            console.error(`[Signup] Email API Failed: ${text}`);
-          } else {
-            console.log("[Signup] Email triggered successfully.");
-          }
-        })
-        .catch(err => console.error("[Signup] Welcome email network error:", err));
+      // Welcome Email is now handled centrally in DashboardPage.tsx based on DB flag
+      // to support both Form Signup and Google OAuth uniformly.
 
       // Automatic login is enabled because you turned off email confirmation
       navigate('/dashboard');
@@ -129,7 +110,7 @@ const SignupPage: React.FC = () => {
                 {agreed && <div className="w-2 h-2 bg-white rounded-full" />}
               </div>
               <label className="text-[10px] font-bold opacity-40 leading-snug cursor-pointer">
-                I agree to the <button type="button" onClick={(e) => { e.stopPropagation(); setShowModal(true); }} className="underline hover:text-[#E94057]">Terms and Privacy Policy</button>
+                I agree to the <Link to="/terms" target="_blank" onClick={(e) => e.stopPropagation()} className="underline hover:text-[#E94057]">Terms of Service</Link> and <Link to="/privacy" target="_blank" onClick={(e) => e.stopPropagation()} className="underline hover:text-[#E94057]">Privacy Policy</Link>
               </label>
             </div>
 
@@ -144,24 +125,6 @@ const SignupPage: React.FC = () => {
         </div>
       </div>
 
-      {showModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-white w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl flex flex-col max-h-[80vh]">
-            <div className="p-8 border-b border-gray-100 flex justify-between items-center">
-              <h3 className="text-2xl font-bold" style={{ fontFamily: 'DM Serif Display', color: navyColor }}>{signupLegalContent.title}</h3>
-              <button onClick={() => setShowModal(false)} className="text-xl opacity-20 hover:opacity-100 transition-opacity">✕</button>
-            </div>
-            <div className="p-8 overflow-y-auto text-sm leading-relaxed text-gray-500 bg-[#FCFAFA] prose prose-sm max-w-none">
-              <ReactMarkdown>{signupLegalContent.content}</ReactMarkdown>
-            </div>
-            <div className="p-6 bg-white border-t border-gray-100">
-              <button onClick={() => { setAgreed(true); setShowModal(false); }} className="w-full py-4 rounded-xl text-white font-bold transition-all hover:brightness-110" style={{ backgroundColor: brandColor }}>
-                {signupLegalContent.acceptButton}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

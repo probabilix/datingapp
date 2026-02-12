@@ -5,6 +5,10 @@ import authRoutes from './routes/auth.routes.js';
 import notificationRoutes from './routes/notifications.routes.js';
 
 const app = express();
+
+// Trust Vercel Proxy (Needed for Rate Limiting to work correctly)
+app.set('trust proxy', 1);
+
 app.use(cors({
     origin: [
         process.env.CLIENT_URL // Dynamic fallback from env
@@ -20,9 +24,14 @@ app.use((req, res, next) => {
     }
 });
 
+import { apiLimiter, authLimiter } from './middleware/rateLimiter.js';
+
 // Modular Payment Routing
-app.use('/api/auth', authRoutes);
-app.use('/api/notifications', notificationRoutes);
+// Apply strict limiter to Auth routes
+app.use('/api/auth', authLimiter, authRoutes);
+
+// Apply general limiter to other routes
+app.use('/api/notifications', apiLimiter, notificationRoutes);
 
 // Apply Stripe routes (Webhook needs raw body, handled inside router or before json middleware)
 app.use('/api/payments/stripe', stripeRoutes);

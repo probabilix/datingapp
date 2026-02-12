@@ -255,17 +255,40 @@ export const handleStripeWebhook = async (req, res) => {
       const session = event.data.object;
       const { transactionId, userId, type, planName, credits, creditType } = session.metadata;
 
-      // 1. Idempotency Check
-      const { data: tx } = await supabase.from('transactions').select('status').eq('id', transactionId).single();
-      if (tx && tx.status === 'completed') return res.json({ received: true });
+      // 1. Optimistic Locking: Only proceed if status is 'pending'
+      // This prevents race conditions where double webhooks trigger duplicate credits
+      const { data: updatedTx, error: updateError } = await supabase
+        .from('transactions')
+        .update({
+          status: 'completed',
+          amount: session.amount_total / 100,
+          stripe_session_id: session.id, // Ensure session ID is captured
+          // CRITICAL: Store Invoice ID to prevent duplicate logs from 'invoice.payment_succeeded'
+          metadata: {
+            ...session.metadata, // Keep existing metadata
+            invoice_id: session.invoice // Store the Stripe Invoice ID
+          }
+        })
+        .eq('id', transactionId)
+        .eq('status', 'pending') // <--- CRITICAL: Only update if pending
+        .select()
+        .single();
 
-      // 2. Mark Transaction Complete
-      await supabase.from('transactions').update({
-        status: 'completed',
-        amount: session.amount_total / 100
-      }).eq('id', transactionId);
+      if (updateError && updateError.code !== 'PGRST116') { // PGRST116 = JSON object not found (row mismatch)
+        console.error("Transaction Update Error:", updateError);
+        return res.status(500).json({ error: "DB Error" });
+      }
 
-      // 3. Fulfill Order
+      // If no row returned, it means it was already completed or doesn't exist.
+      // In either case, we stop here to prevent duplicate credit addition.
+      if (!updatedTx) {
+        console.log(`[Webhook] Transaction ${transactionId} already processed or not found.`);
+        return res.json({ received: true });
+      }
+
+      console.log(`[Webhook] Transaction ${transactionId} marked blocked/completed. Proceeding to fulfill.`);
+
+      // 3. Fulfill Order (Only runs ONCE now)
       if (type === 'plan') {
         const { data: plan } = await supabase.from('plan_settings').select('monthly_messages, monthly_voice_mins').eq('plan_name', planName).single();
         if (plan) {
@@ -315,6 +338,11 @@ export const handleStripeWebhook = async (req, res) => {
         try {
           const { data: user } = await supabase.from('user_usage').select('user_id').eq('stripe_customer_id', customerId).single();
           if (user) {
+            // Check for existing transaction to avoid duplicates
+            // Composite key conceptually: user_id + subscription_id + action + timestamp (approx)
+            // Hard to dedupe perfectly without a unique ID from Stripe for this action, 
+            // but these are low-risk events (logging only).
+
             console.log(`[Webhook] Logging ${isCanceling ? 'CANCELLATION' : 'RESUMPTION'} transaction for user ${user.user_id}`);
             await supabase.from('transactions').insert({
               user_id: user.user_id,
@@ -348,8 +376,8 @@ export const handleStripeWebhook = async (req, res) => {
           // Update User Usage
           await supabase.from('user_usage').update({
             plan_type: plan.plan_name,
-            messages_left: plan.monthly_messages, // Reset limits on plan change
-            voice_minutes_left: plan.monthly_voice_mins,
+            // messages_left: plan.monthly_messages, // REMOVED: Managed by invoice.payment_succeeded to preserve rollover
+            // voice_minutes_left: plan.monthly_voice_mins, // REMOVED
             subscription_status: 'active' // Ensure it's active if they just switched
           }).eq('stripe_customer_id', customerId);
         }
@@ -397,7 +425,6 @@ export const handleStripeWebhook = async (req, res) => {
       const currency = invoice.currency;
 
       // Safe Extract of Period
-      // If lines.data is empty or structure varies, fallback to now
       const periodStart = (invoice.lines?.data?.[0]?.period?.start) ? new Date(invoice.lines.data[0].period.start * 1000).toISOString() : new Date().toISOString();
       const periodEnd = (invoice.lines?.data?.[0]?.period?.end) ? new Date(invoice.lines.data[0].period.end * 1000).toISOString() : new Date().toISOString();
 
@@ -406,10 +433,25 @@ export const handleStripeWebhook = async (req, res) => {
       const { data: user } = await supabase.from('user_usage').select('user_id').eq('stripe_customer_id', customerId).single();
 
       if (user) {
+        // Prevent Duplicate Invoice Logging
+        // We check if a transaction with this invoice_id already exists in metadata
+        // Note: This relies on metadata structure consistency.
+        // We use a raw filter for JSONB metadata containing the invoice_id
+        const { data: existingTx } = await supabase
+          .from('transactions')
+          .select('id')
+          .eq('user_id', user.user_id)
+          .eq('metadata->>invoice_id', invoice.id) // Check deeply in metadata
+          .single();
+
+        if (existingTx) {
+          console.log(`[Webhook] Transaction for Invoice ${invoice.id} already exists. Skipping duplicate log.`);
+          return res.json({ received: true });
+        }
+
         console.log(`[Webhook] Recording Transaction for User ${user.user_id}: $${amountPaid}`);
 
         // Insert Transaction Record
-        // Wrapped in try/catch to ensure one failure doesn't crash the hook
         try {
           await supabase.from('transactions').insert({
             user_id: user.user_id,
@@ -425,6 +467,40 @@ export const handleStripeWebhook = async (req, res) => {
           });
         } catch (insertErr) {
           console.error("[Webhook] Failed to insert transaction record:", insertErr);
+        }
+
+        // --- 4. Replenish Credits (Renewal Logic) ---
+        // Verify this is a subscription renewal or update (not initial purchase)
+        if (invoice.billing_reason === 'subscription_cycle' || invoice.billing_reason === 'subscription_update') {
+          const priceId = invoice.lines.data[0]?.price?.id;
+          if (priceId) {
+            const { data: plan } = await supabase
+              .from('plan_settings')
+              .select('monthly_messages, monthly_voice_mins')
+              .eq('stripe_price_id', priceId)
+              .single();
+
+            if (plan) {
+              console.log(`[Webhook] Renewing Credits for User ${user.user_id}. Adding: ${plan.monthly_messages} msgs, ${plan.monthly_voice_mins} mins.`);
+
+              // Fetch current balance to increment
+              const { data: currentUserUsage } = await supabase
+                .from('user_usage')
+                .select('messages_left, voice_minutes_left')
+                .eq('user_id', user.user_id)
+                .single();
+
+              const currentMessages = currentUserUsage?.messages_left || 0;
+              const currentVoice = currentUserUsage?.voice_minutes_left || 0;
+
+              await supabase.from('user_usage').update({
+                messages_left: currentMessages + plan.monthly_messages,
+                voice_minutes_left: currentVoice + plan.monthly_voice_mins,
+                current_plan_expires_at: periodEnd, // Update expiration
+                subscription_status: 'active'
+              }).eq('user_id', user.user_id);
+            }
+          }
         }
       } else {
         console.error(`[Webhook] User not found for Stripe Customer: ${customerId}`);

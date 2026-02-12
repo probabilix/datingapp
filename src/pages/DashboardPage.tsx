@@ -16,6 +16,11 @@ const DashboardPage: React.FC = () => {
   const [advisors, setAdvisors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+
+
+  // Ref to prevent double-firing of welcome email in StrictMode
+  const welcomeEmailTriggered = React.useRef(false);
+
   const [isDiscoveryOpen, setIsDiscoveryOpen] = useState(false);
   const [showAnalysis, setShowAnalysis] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -36,6 +41,8 @@ const DashboardPage: React.FC = () => {
         return;
       }
 
+
+
       const [profileRes, usageRes, advisorsRes] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', session.user.id).single(),
         supabase.from('user_usage').select('*').eq('user_id', session.user.id).single(),
@@ -44,6 +51,33 @@ const DashboardPage: React.FC = () => {
 
       if (profileRes.data) {
         setProfile(profileRes.data);
+
+        // --- WELCOME EMAIL CHECK ---
+        // If flag is false (new user or legacy), trigger email via backend
+        if (profileRes.data.welcome_email_sent === false && !welcomeEmailTriggered.current) {
+          console.log("[Dashboard] Welcome email not sent yet. Triggering...");
+          welcomeEmailTriggered.current = true; // Lock immediately
+
+          // Don't await, let it fail silently or succeed in background
+          fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/notifications/welcome`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: session.user.email,
+              name: profileRes.data.full_name || session.user.user_metadata.full_name,
+              userId: session.user.id
+            })
+          }).then(() => {
+            console.log("[Dashboard] Welcome email trigger sent.");
+            // Update local state so we don't try again if the user navigates around (SPA)
+            setProfile((prev: any) => ({ ...prev, welcome_email_sent: true }));
+          }).catch(err => {
+            console.error("[Dashboard] Welcome email trigger failed", err);
+            // We DO NOT reset the lock here. If it failed, let's retry on next full page reload, 
+            // not spam the API on every react render.
+          });
+        }
+
         // CRITICAL: If analysis arrived, clear the local storage lock immediately
         if (profileRes.data.persona_analysis && Object.keys(profileRes.data.persona_analysis).length > 0) {
           localStorage.removeItem('discovery_pending');

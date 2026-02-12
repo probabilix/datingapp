@@ -196,16 +196,16 @@ const CheckoutPage: React.FC = () => {
             </button>
             <h2 className="text-4xl font-bold mb-8" style={{ fontFamily: 'DM Serif Display' }}>Review Order</h2>
 
-            <div className="bg-white p-10 rounded-[2.5rem] shadow-sm">
-              <div className="flex items-center gap-6 mb-10">
-                <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center"><CreditCard className="text-[#E94057]" /></div>
+            <div className="bg-white p-6 md:p-10 rounded-[2.5rem] shadow-sm">
+              <div className="flex flex-col md:flex-row md:items-center gap-6 mb-10">
+                <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center shrink-0"><CreditCard className="text-[#E94057]" /></div>
                 <div className="flex-1">
-                  <h3 className="font-bold text-2xl">{purchaseItem.name}</h3>
+                  <h3 className="font-bold text-xl md:text-2xl">{purchaseItem.name}</h3>
                   <p className="text-[10px] font-black uppercase text-gray-300">
                     {purchaseItem.credits ? `${purchaseItem.credits} ${purchaseItem.type === 'voice' ? 'Minutes' : 'Credits'}` : 'PCI-DSS Encrypted Asset'}
                   </p>
                 </div>
-                <div className="font-black text-3xl">${purchaseItem.price}</div>
+                <div className="font-black text-3xl md:text-3xl">${purchaseItem.price}</div>
               </div>
 
               {/* Restored Coupon UI */}
@@ -213,11 +213,11 @@ const CheckoutPage: React.FC = () => {
                 <form onSubmit={handleApplyCoupon} className="flex gap-2">
                   <input
                     placeholder="COUPON CODE"
-                    className="flex-1 bg-gray-50 p-5 rounded-2xl outline-none font-bold text-xs uppercase"
+                    className="flex-1 bg-gray-50 p-4 md:p-5 rounded-2xl outline-none font-bold text-xs uppercase w-full"
                     value={couponInput}
                     onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
                   />
-                  <button type="submit" className="bg-black text-white px-10 rounded-2xl font-bold text-xs cursor-pointer">APPLY</button>
+                  <button type="submit" className="bg-black text-white px-6 md:px-10 rounded-2xl font-bold text-xs cursor-pointer">APPLY</button>
                 </form>
                 {couponError && <p className="text-red-500 text-[10px] font-bold uppercase px-2">{couponError}</p>}
                 {appliedCoupon && <p className="text-green-600 text-[10px] font-bold uppercase px-2">COUPON APPLIED: {appliedCoupon.code}</p>}
@@ -232,19 +232,19 @@ const CheckoutPage: React.FC = () => {
                 )}
                 <div className="flex justify-between items-center">
                   <span className="font-bold text-gray-400 uppercase text-[10px]">Final Amount</span>
-                  <span className="text-5xl font-black text-[#E94057]">${finalPrice.toFixed(2)}</span>
+                  <span className="text-4xl md:text-5xl font-black text-[#E94057]">${finalPrice.toFixed(2)}</span>
                 </div>
               </div>
             </div>
 
             <div className="bg-green-50/50 p-6 rounded-3xl border border-green-100 flex items-center gap-4">
-              <ShieldCheck className="text-green-600" />
+              <ShieldCheck className="text-green-600 shrink-0" />
               <p className="text-[10px] font-bold text-green-800 uppercase leading-tight">Your data is protected by 256-bit SSL encryption and processed via certified PCI-compliant gateways.</p>
             </div>
           </div>
 
           {/* RIGHT: Direct Card Payment + 3rd Party Options */}
-          <div className="bg-white p-12 rounded-[3.5rem] shadow-2xl border border-gray-100">
+          <div className="bg-white p-6 md:p-12 rounded-[2.5rem] md:rounded-[3.5rem] shadow-2xl border border-gray-100">
             <h3 className="text-xl font-bold mb-8">Payment Method</h3>
 
             <div className="space-y-8">
