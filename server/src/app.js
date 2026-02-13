@@ -24,16 +24,14 @@ app.use((req, res, next) => {
     }
 });
 
-// import { apiLimiter, authLimiter } from './middleware/rateLimiter.js';
+import { apiLimiter, authLimiter } from './middleware/rateLimiter.js';
 
 // Modular Payment Routing
 // Apply strict limiter to Auth routes
-// app.use('/api/auth', authLimiter, authRoutes);
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
 
 // Apply general limiter to other routes
-// app.use('/api/notifications', apiLimiter, notificationRoutes);
-app.use('/api/notifications', notificationRoutes);
+app.use('/api/notifications', apiLimiter, notificationRoutes);
 
 // Apply Stripe routes (Webhook needs raw body, handled inside router or before json middleware)
 // Apply Stripe routes (Webhook needs raw body, handled inside router or before json middleware)
