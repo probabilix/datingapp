@@ -101,11 +101,11 @@ const HeroSection: React.FC = () => {
         {/* Social Proof - Grouped tightly together */}
         <div className="flex flex-row items-center justify-center gap-4">
           <div className="flex -space-x-3.5">
-            {[1, 2, 3, 4, 5].map((i) => (
+            {[21, 32, 23, 24, 25].map((imgId, index) => (
               <img
-                key={i}
+                key={index}
                 className="w-10 h-10 rounded-full border-[3px] border-white shadow-sm object-cover"
-                src={`https://i.pravatar.cc/100?img=${i + 20}`}
+                src={`https://i.pravatar.cc/100?img=${imgId}`}
                 alt="user avatar"
               />
             ))}
