@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { themeData } from '../data/themeData';
-import { Send, Phone, ChevronLeft, Sparkles } from 'lucide-react';
+import { ArrowUp, Loader2, Phone, ChevronLeft, Sparkles } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 
 const ChatInterface = ({ advisor, onClose }: any) => {
@@ -98,8 +98,20 @@ const ChatInterface = ({ advisor, onClose }: any) => {
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                     />
-                    <button onClick={handleSendMessage} className="w-14 h-14 rounded-full flex items-center justify-center text-white shadow-xl active:scale-95 transition-all" style={{ backgroundColor: themeData.colors.brand }}>
-                        <Send size={20} />
+                    <button
+                        onClick={handleSendMessage}
+                        disabled={isTyping || !input.trim()}
+                        className="w-14 h-14 rounded-full flex items-center justify-center text-white active:scale-95 transition-all duration-300 disabled:opacity-40 cursor-pointer"
+                        style={{
+                            backgroundColor: themeData.colors.brand,
+                            boxShadow: input.trim() && !isTyping
+                                ? `0 0 0 4px rgba(233,64,87,0.15), 0 0 20px rgba(233,64,87,0.45)`
+                                : 'none'
+                        }}
+                    >
+                        {isTyping
+                            ? <Loader2 size={20} className="animate-spin" />
+                            : <ArrowUp size={20} strokeWidth={2.5} />}
                     </button>
                 </div>
             </div>

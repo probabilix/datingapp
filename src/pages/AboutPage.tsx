@@ -12,6 +12,7 @@ const AboutPage: React.FC = () => {
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [siteStats, setSiteStats] = useState<{ label: string; value: string }[]>(aboutData.stats);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -20,6 +21,21 @@ const AboutPage: React.FC = () => {
       setCheckingAuth(false);
     };
     checkAuth();
+  }, []);
+
+  // Fetch stats from DB — admin can update these from the admin panel
+  useEffect(() => {
+    const fetchStats = async () => {
+      const { data, error } = await supabase
+        .from('site_stats')
+        .select('stat_label, stat_value')
+        .order('display_order', { ascending: true });
+
+      if (!error && data && data.length > 0) {
+        setSiteStats(data.map(s => ({ label: s.stat_label, value: s.stat_value })));
+      }
+    };
+    fetchStats();
   }, []);
 
   const handleCtaClick = () => {
@@ -34,24 +50,17 @@ const AboutPage: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: themeData.colors.bgSoft }}>
-      {/* SEO Meta Tags */}
       <Helmet>
         <title>{aboutData.seo.title}</title>
         <meta name="description" content={aboutData.seo.description} />
         <meta name="keywords" content={aboutData.seo.keywords} />
-
-        {/* Open Graph Tags for Social Sharing */}
         <meta property="og:title" content={aboutData.seo.title} />
         <meta property="og:description" content={aboutData.seo.description} />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://datingadvice.io/about" />
-
-        {/* Twitter Card Tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={aboutData.seo.title} />
         <meta name="twitter:description" content={aboutData.seo.description} />
-
-        {/* Structured Data for Rich Snippets */}
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
@@ -59,156 +68,174 @@ const AboutPage: React.FC = () => {
             "name": "DatingAdvice.io",
             "description": aboutData.mission.content,
             "url": "https://datingadvice.io",
-            "logo": "https://datingadvice.io/logo.png",
-            "sameAs": [],
-            "contactPoint": {
-              "@type": "ContactPoint",
-              "contactType": "Customer Service",
-              "url": "https://datingadvice.io/contact"
-            }
           })}
         </script>
       </Helmet>
 
       <Header />
 
-      <main className="flex-grow pt-32 pb-20 px-6">
-        {/* Hero Section */}
-        <section className="max-w-[1100px] mx-auto mb-20">
-          <Link to="/" className="text-xs font-black opacity-30 hover:opacity-100 uppercase tracking-widest mb-8 inline-block transition-opacity">
-            ← Back
-          </Link>
-          <h1 className="text-5xl md:text-7xl font-bold mb-6" style={{ fontFamily: 'DM Serif Display', color: themeData.colors.textHeading }}>
-            {aboutData.title}
-          </h1>
-          <p className="text-xl md:text-2xl font-medium opacity-60 max-w-3xl" style={{ color: themeData.colors.textBody }}>
-            {aboutData.subtitle}
-          </p>
-        </section>
+      <main className="flex-grow pt-24 md:pt-32 pb-12 md:pb-20 px-4 md:px-6">
+        <div className="max-w-[1100px] mx-auto">
 
-        {/* Stats Section */}
-        <section className="max-w-[1100px] mx-auto mb-32">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {aboutData.stats.map((stat, idx) => (
-              <div key={idx} className="bg-white rounded-[2rem] p-8 text-center shadow-lg border border-gray-100">
-                <div className="text-4xl md:text-5xl font-black mb-2" style={{ color: themeData.colors.brand }}>
-                  {stat.value}
-                </div>
-                <p className="text-xs md:text-sm font-bold uppercase tracking-wider opacity-60" style={{ color: themeData.colors.textBody }}>
-                  {stat.label}
-                </p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Mission Section */}
-        <section className="max-w-[1100px] mx-auto mb-32">
-          <div className="bg-white rounded-[3rem] p-12 md:p-16 shadow-xl border border-gray-100">
-            <div className="flex items-center gap-4 mb-8">
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${themeData.colors.brand}20` }}>
-                <Target size={32} style={{ color: themeData.colors.brand }} />
-              </div>
-              <h2 className="text-4xl md:text-5xl font-bold" style={{ fontFamily: 'DM Serif Display', color: themeData.colors.textHeading }}>
-                {aboutData.mission.heading}
-              </h2>
-            </div>
-            <p className="text-lg md:text-xl leading-relaxed opacity-80" style={{ color: themeData.colors.textBody }}>
-              {aboutData.mission.content}
+          {/* ── Hero ───────────────────────────────────────── */}
+          <section className="mb-10 md:mb-16">
+            <Link to="/" className="text-[10px] font-black opacity-30 hover:opacity-100 uppercase tracking-widest mb-6 inline-block transition-opacity">
+              ← Back
+            </Link>
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-3 md:mb-4 leading-tight"
+              style={{ fontFamily: 'DM Serif Display', color: themeData.colors.textHeading }}>
+              {aboutData.title}
+            </h1>
+            <p className="text-sm md:text-lg font-medium opacity-60 max-w-2xl leading-relaxed"
+              style={{ color: themeData.colors.textBody }}>
+              {aboutData.subtitle}
             </p>
-          </div>
-        </section>
+          </section>
 
-        {/* Vision Section */}
-        <section className="max-w-[1100px] mx-auto mb-32">
-          <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-[3rem] p-12 md:p-16 border border-pink-100">
-            <div className="flex items-center gap-4 mb-8">
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-white shadow-lg">
-                <Eye size={32} style={{ color: themeData.colors.brand }} />
-              </div>
-              <h2 className="text-4xl md:text-5xl font-bold" style={{ fontFamily: 'DM Serif Display', color: themeData.colors.textHeading }}>
-                {aboutData.vision.heading}
-              </h2>
-            </div>
-            <p className="text-lg md:text-xl leading-relaxed opacity-80" style={{ color: themeData.colors.textBody }}>
-              {aboutData.vision.content}
-            </p>
-          </div>
-        </section>
-
-        {/* Values Section */}
-        <section className="max-w-[1100px] mx-auto mb-32">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-center" style={{ fontFamily: 'DM Serif Display', color: themeData.colors.textHeading }}>
-            Our Core Values
-          </h2>
-          <p className="text-center text-lg opacity-60 mb-16 max-w-2xl mx-auto" style={{ color: themeData.colors.textBody }}>
-            The principles that guide everything we do at DatingAdvice.io
-          </p>
-          <div className="grid md:grid-cols-2 gap-8">
-            {aboutData.values.map((value, idx) => {
-              const IconComponent = valueIcons[idx];
-              return (
-                <div key={idx} className="bg-white rounded-[2.5rem] p-10 shadow-lg border border-gray-100 hover:shadow-2xl transition-shadow">
-                  <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-6" style={{ backgroundColor: `${themeData.colors.brand}15` }}>
-                    <IconComponent size={28} style={{ color: themeData.colors.brand }} />
+          {/* ── Stats ──────────────────────────────────────── */}
+          <section className="mb-10 md:mb-16">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
+              {siteStats.map((stat, idx) => (
+                <div key={idx} className="bg-white rounded-2xl md:rounded-[2rem] p-4 md:p-8 text-center shadow-sm border border-gray-100 overflow-hidden">
+                  <div className="text-xl md:text-2xl font-black mb-1 whitespace-nowrap leading-tight"
+                    style={{ color: themeData.colors.brand }}>
+                    {stat.value}
                   </div>
-                  <h3 className="text-2xl font-bold mb-4" style={{ color: themeData.colors.textHeading }}>
-                    {value.title}
-                  </h3>
-                  <p className="text-base leading-relaxed opacity-70" style={{ color: themeData.colors.textBody }}>
-                    {value.description}
+                  <p className="text-[9px] md:text-[11px] font-bold uppercase tracking-wider opacity-60"
+                    style={{ color: themeData.colors.textBody }}>
+                    {stat.label}
                   </p>
                 </div>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* Team Expertise Section */}
-        <section className="max-w-[1100px] mx-auto mb-32">
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-[3rem] p-12 md:p-16 border border-blue-100">
-            <div className="flex items-center gap-4 mb-8">
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-white shadow-lg">
-                <Users size={32} style={{ color: themeData.colors.brand }} />
-              </div>
-              <h2 className="text-4xl md:text-5xl font-bold" style={{ fontFamily: 'DM Serif Display', color: themeData.colors.textHeading }}>
-                {aboutData.team.heading}
-              </h2>
+              ))}
             </div>
-            <p className="text-lg md:text-xl leading-relaxed opacity-80" style={{ color: themeData.colors.textBody }}>
-              {aboutData.team.content}
-            </p>
-          </div>
-        </section>
+          </section>
 
-        {/* CTA Section */}
-        <section className="max-w-[1100px] mx-auto mb-20">
-          <div className="rounded-[3rem] p-12 md:p-20 text-center shadow-2xl relative overflow-hidden" style={{ backgroundColor: themeData.colors.brand }}>
-            <div className="absolute inset-0 opacity-10">
-              <div className="absolute top-10 left-10 w-32 h-32 bg-white rounded-full blur-3xl" />
-              <div className="absolute bottom-10 right-10 w-40 h-40 bg-white rounded-full blur-3xl" />
-            </div>
-            <div className="relative z-10">
-              <div className="w-20 h-20 bg-white/20 backdrop-blur-lg rounded-2xl flex items-center justify-center mx-auto mb-8">
-                <Sparkles size={40} className="text-white" />
+          {/* ── Mission ────────────────────────────────────── */}
+          <section className="mb-6 md:mb-10">
+            <div className="bg-white rounded-2xl md:rounded-[2.5rem] p-6 md:p-12 shadow-sm border border-gray-100">
+              <div className="flex items-center gap-3 mb-4 md:mb-6">
+                <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: `${themeData.colors.brand}20` }}>
+                  <Target size={20} className="md:hidden" style={{ color: themeData.colors.brand }} />
+                  <Target size={28} className="hidden md:block" style={{ color: themeData.colors.brand }} />
+                </div>
+                <h2 className="text-xl md:text-3xl font-bold"
+                  style={{ fontFamily: 'DM Serif Display', color: themeData.colors.textHeading }}>
+                  {aboutData.mission.heading}
+                </h2>
               </div>
-              <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white" style={{ fontFamily: 'DM Serif Display' }}>
-                {aboutData.cta.heading}
-              </h2>
-              <p className="text-xl text-white/90 mb-10 max-w-2xl mx-auto">
-                {aboutData.cta.description}
+              <p className="text-sm md:text-base leading-relaxed opacity-75"
+                style={{ color: themeData.colors.textBody }}>
+                {aboutData.mission.content}
               </p>
-              <button
-                onClick={handleCtaClick}
-                disabled={checkingAuth}
-                className="px-12 py-5 bg-white rounded-2xl font-bold text-lg shadow-2xl hover:scale-105 active:scale-95 transition-all inline-flex items-center gap-3 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
-                style={{ color: themeData.colors.brand }}
-              >
-                {aboutData.cta.buttonText} <ChevronRight size={20} />
-              </button>
             </div>
-          </div>
-        </section>
+          </section>
+
+          {/* ── Vision ─────────────────────────────────────── */}
+          <section className="mb-6 md:mb-10">
+            <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-2xl md:rounded-[2.5rem] p-6 md:p-12 border border-pink-100">
+              <div className="flex items-center gap-3 mb-4 md:mb-6">
+                <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center bg-white shadow-md flex-shrink-0">
+                  <Eye size={20} className="md:hidden" style={{ color: themeData.colors.brand }} />
+                  <Eye size={28} className="hidden md:block" style={{ color: themeData.colors.brand }} />
+                </div>
+                <h2 className="text-xl md:text-3xl font-bold"
+                  style={{ fontFamily: 'DM Serif Display', color: themeData.colors.textHeading }}>
+                  {aboutData.vision.heading}
+                </h2>
+              </div>
+              <p className="text-sm md:text-base leading-relaxed opacity-75"
+                style={{ color: themeData.colors.textBody }}>
+                {aboutData.vision.content}
+              </p>
+            </div>
+          </section>
+
+          {/* ── Values ─────────────────────────────────────── */}
+          <section className="mb-6 md:mb-10">
+            <h2 className="text-xl md:text-3xl font-bold mb-2 md:mb-3 text-center"
+              style={{ fontFamily: 'DM Serif Display', color: themeData.colors.textHeading }}>
+              Our Core Values
+            </h2>
+            <p className="text-center text-xs md:text-sm opacity-60 mb-6 md:mb-10 max-w-xl mx-auto leading-relaxed"
+              style={{ color: themeData.colors.textBody }}>
+              The principles that guide everything we do at DatingAdvice.io
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+              {aboutData.values.map((value, idx) => {
+                const IconComponent = valueIcons[idx];
+                return (
+                  <div key={idx} className="bg-white rounded-2xl md:rounded-[2rem] p-5 md:p-8 shadow-sm border border-gray-100">
+                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center mb-4"
+                      style={{ backgroundColor: `${themeData.colors.brand}15` }}>
+                      <IconComponent size={20} style={{ color: themeData.colors.brand }} />
+                    </div>
+                    <h3 className="text-base md:text-xl font-bold mb-2"
+                      style={{ color: themeData.colors.textHeading }}>
+                      {value.title}
+                    </h3>
+                    <p className="text-xs md:text-sm leading-relaxed opacity-70"
+                      style={{ color: themeData.colors.textBody }}>
+                      {value.description}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* ── Team ───────────────────────────────────────── */}
+          <section className="mb-6 md:mb-10">
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl md:rounded-[2.5rem] p-6 md:p-12 border border-blue-100">
+              <div className="flex items-center gap-3 mb-4 md:mb-6">
+                <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center bg-white shadow-md flex-shrink-0">
+                  <Users size={20} className="md:hidden" style={{ color: themeData.colors.brand }} />
+                  <Users size={28} className="hidden md:block" style={{ color: themeData.colors.brand }} />
+                </div>
+                <h2 className="text-xl md:text-3xl font-bold"
+                  style={{ fontFamily: 'DM Serif Display', color: themeData.colors.textHeading }}>
+                  {aboutData.team.heading}
+                </h2>
+              </div>
+              <p className="text-sm md:text-base leading-relaxed opacity-75"
+                style={{ color: themeData.colors.textBody }}>
+                {aboutData.team.content}
+              </p>
+            </div>
+          </section>
+
+          {/* ── CTA ────────────────────────────────────────── */}
+          <section>
+            <div className="rounded-2xl md:rounded-[2.5rem] p-8 md:p-16 text-center shadow-xl relative overflow-hidden"
+              style={{ backgroundColor: themeData.colors.brand }}>
+              <div className="absolute inset-0 opacity-10">
+                <div className="absolute top-6 left-6 w-20 h-20 bg-white rounded-full blur-2xl" />
+                <div className="absolute bottom-6 right-6 w-28 h-28 bg-white rounded-full blur-2xl" />
+              </div>
+              <div className="relative z-10">
+                <div className="w-14 h-14 md:w-16 md:h-16 bg-white/20 backdrop-blur-lg rounded-2xl flex items-center justify-center mx-auto mb-5 md:mb-6">
+                  <Sparkles size={28} className="text-white" />
+                </div>
+                <h2 className="text-xl md:text-3xl font-bold mb-3 md:mb-4 text-white"
+                  style={{ fontFamily: 'DM Serif Display' }}>
+                  {aboutData.cta.heading}
+                </h2>
+                <p className="text-sm md:text-base text-white/85 mb-6 md:mb-8 max-w-xl mx-auto leading-relaxed">
+                  {aboutData.cta.description}
+                </p>
+                <button
+                  onClick={handleCtaClick}
+                  disabled={checkingAuth}
+                  className="px-8 md:px-12 py-3 md:py-4 bg-white rounded-xl font-bold text-sm md:text-base shadow-xl hover:scale-105 active:scale-95 transition-all inline-flex items-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+                  style={{ color: themeData.colors.brand }}
+                >
+                  {aboutData.cta.buttonText} <ChevronRight size={18} />
+                </button>
+              </div>
+            </div>
+          </section>
+
+        </div>
       </main>
 
       <Footer />

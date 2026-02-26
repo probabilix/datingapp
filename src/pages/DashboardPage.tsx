@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { API_BASE_URL } from '../config/api';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '../lib/supabaseClient';
 import { themeData } from '../data/themeData';
-import { MessageSquare, Clock, ShieldCheck, Phone, Zap, Star, Activity, Sparkles } from 'lucide-react';
+import { MessageSquare, Clock, ShieldCheck, Phone, Zap, Star, Activity, Sparkles, Lock, RotateCcw } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import DiscoveryForm from '../components/DiscoveryForm';
@@ -21,10 +21,48 @@ const DashboardPage: React.FC = () => {
 
   // Ref to prevent double-firing of welcome email in StrictMode
   const welcomeEmailTriggered = React.useRef(false);
+  const isFirstVisitRef = React.useRef<boolean | null>(null);
+  const analysisBaselineRef = React.useRef<any>(null);
+  const refreshTimeoutRef = React.useRef<any>(null);
 
   const [isDiscoveryOpen, setIsDiscoveryOpen] = useState(false);
   const [showAnalysis, setShowAnalysis] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  const handleRefreshAnalysis = () => {
+    analysisBaselineRef.current = profile?.persona_analysis ?? null;
+    setShowAnalysis(false);
+    setIsDiscoveryOpen(true);
+  };
+
+  // Called when DiscoveryForm submits successfully
+  const handleFormSuccess = () => {
+    setIsAnalyzing(true);
+
+    // Safety fallback: If n8n completely fails and neither realtime nor polling catches it
+    // within 30 seconds, force the UI to resolve so the user isn't stuck forever.
+    if (refreshTimeoutRef.current) clearTimeout(refreshTimeoutRef.current);
+    refreshTimeoutRef.current = setTimeout(async () => {
+      // Check if we are STILL pending after 30 seconds
+      if (localStorage.getItem('discovery_pending') === 'true') {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+
+        const { data: latest } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+        if (latest) {
+          setProfile(latest);
+          // If we actually have an analysis, show it. Otherwise, unfortunately, n8n failed.
+          if (latest.persona_analysis) {
+            setShowAnalysis(true);
+          }
+        }
+
+        analysisBaselineRef.current = null;
+        localStorage.removeItem('discovery_pending');
+        setIsAnalyzing(false);
+      }
+    }, 30000);
+  };
 
   useEffect(() => {
     // Sync initial state from storage, BUT prioritize profile data if it loads later
@@ -52,6 +90,11 @@ const DashboardPage: React.FC = () => {
 
       if (profileRes.data) {
         setProfile(profileRes.data);
+
+        // Capture once: true = first ever visit, false = returning user
+        if (isFirstVisitRef.current === null) {
+          isFirstVisitRef.current = profileRes.data.welcome_email_sent === false;
+        }
 
         // --- WELCOME EMAIL CHECK ---
         // If flag is false (new user or legacy), trigger email via backend
@@ -105,54 +148,76 @@ const DashboardPage: React.FC = () => {
             const newProfile = payload.new;
             setProfile(newProfile);
 
-            // Check if analysis is now ready
-            if (newProfile.persona_analysis && Object.keys(newProfile.persona_analysis).length > 0) {
+            // Only treat as success if analysis actually CHANGED from baseline
+            const baseline = analysisBaselineRef.current;
+            const isGenuinelyNew = newProfile.persona_analysis &&
+              Object.keys(newProfile.persona_analysis).length > 0 &&
+              JSON.stringify(newProfile.persona_analysis) !== JSON.stringify(baseline);
+
+            if (isGenuinelyNew) {
+              console.log("Realtime: genuine new analysis found. Updating UI.");
+              analysisBaselineRef.current = null;
               localStorage.removeItem('discovery_pending');
               setIsAnalyzing(false);
-              // Optional: You could trigger a toast or sound here
+              setShowAnalysis(true); // Force open panel
             }
           }
         )
         .subscribe();
 
-      // --- POLLING FALLBACK (Robustness for "Spending too much time") ---
-      // If we are waiting for analysis, check every 2 seconds just in case Realtime misses a beat.
-      const pollInterval = setInterval(async () => {
-        // ALWAYS poll if we don't have analysis but think we should
-        // This covers the case where 'discovery_pending' might be lost but user is waiting
-        if (!profile?.persona_analysis && localStorage.getItem('discovery_pending') === 'true') {
-          console.log("Polling for analysis...");
-          const { data: newProfile } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
-
-          if (newProfile && newProfile.persona_analysis && Object.keys(newProfile.persona_analysis).length > 0) {
-            console.log("Polling success! Analysis found. Updating State now.");
-            setProfile(newProfile);
-            console.log("State setProfile called.");
-            localStorage.removeItem('discovery_pending');
-            setIsAnalyzing(false);
-          }
-        }
-      }, 2000);
-
       return () => {
         supabase.removeChannel(channel);
-        clearInterval(pollInterval);
+        if (refreshTimeoutRef.current) clearTimeout(refreshTimeoutRef.current);
       };
     };
     fetchData();
   }, [navigate]);
 
+  // --- DEDICATED POLLING EFFECT ---
+  // Runs a recursive poll whenever isAnalyzing=true.
+  // Lives in its own useEffect so React state setters are never stale.
   useEffect(() => {
-    if (!loading && profile) {
-      const hasAnalysis = profile.persona_analysis && Object.keys(profile.persona_analysis).length > 0;
-      const isPending = localStorage.getItem('discovery_pending') === 'true';
+    if (!isAnalyzing) return;
 
-      // Only open discovery if they don't have an analysis AND haven't just submitted one
-      if (!hasAnalysis && !isPending) {
-        setIsDiscoveryOpen(true);
+    let stopped = false;
+
+    const poll = async () => {
+      if (stopped) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session || stopped) return;
+
+      const { data: newProfile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+
+      if (stopped) return;
+
+      const baseline = analysisBaselineRef.current;
+      const isGenuinelyNew =
+        newProfile?.persona_analysis &&
+        Object.keys(newProfile.persona_analysis).length > 0 &&
+        JSON.stringify(newProfile.persona_analysis) !== JSON.stringify(baseline);
+
+      if (isGenuinelyNew) {
+        console.log("Polling: new analysis found, updating UI.");
+        analysisBaselineRef.current = null;
+        setProfile(newProfile);
+        localStorage.removeItem('discovery_pending');
+        setIsAnalyzing(false);  // this stops the next poll via effect cleanup
+        setShowAnalysis(true);
+      } else if (!stopped) {
+        setTimeout(poll, 2000);
       }
-    }
-  }, [profile, loading]);
+    };
+
+    const timer = setTimeout(poll, 2000); // first poll after 2s
+    return () => {
+      stopped = true;
+      clearTimeout(timer);
+    };
+  }, [isAnalyzing]);
 
   const handleDivert = (agentId: string, mode: 'chat' | 'voice') => {
     navigate(`/consultation?agent=${agentId}&mode=${mode}`);
@@ -191,7 +256,10 @@ const DashboardPage: React.FC = () => {
                     <Activity size={10} className="text-green-400 animate-pulse" /> AI Analysis Active
                   </div>
                   <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ fontFamily: 'DM Serif Display' }}>
-                    Welcome back, {profile?.full_name?.split(' ')[0] || 'User'}
+                    {isFirstVisitRef.current
+                      ? `Let's go, ${profile?.full_name?.split(' ')[0] || 'there'}.`
+                      : `Welcome back, ${profile?.full_name?.split(' ')[0] || 'User'}.`
+                    }
                   </h2>
                   <p className="text-white/60 text-base leading-relaxed">
                     Your relationship growth is our priority. Let's find your perfect match in strategy today.
@@ -201,7 +269,8 @@ const DashboardPage: React.FC = () => {
                 {/* Updated Logic: Use State instead of localStorage direct read */}
                 {/* Updated Logic: Single Source of Truth - If analysis exists, SHOW IT. Else if waiting, show loader. */}
                 {/* Updated Logic: Single Source of Truth - If analysis exists, SHOW IT. Else if waiting, show loader. */}
-                {!profile?.persona_analysis && isAnalyzing ? (
+                {/* Show analyzing spinner any time isAnalyzing is true — first time OR refresh */}
+                {isAnalyzing ? (
                   <div className="px-8 py-4 bg-white/10 border border-white/20 rounded-2xl flex items-center gap-3 italic text-sm text-white/60">
                     <Clock size={16} className="animate-spin" /> Analyzing your persona...
                   </div>
@@ -217,9 +286,19 @@ const DashboardPage: React.FC = () => {
 
               {showAnalysis && profile?.persona_analysis && (
                 <div className="relative z-10 mt-8 p-6 md:p-8 bg-white/10 backdrop-blur-lg rounded-[2.5rem] border border-white/10 animate-in slide-in-from-top-4 duration-500">
-                  <div className="flex items-center gap-3 mb-4">
-                    <Sparkles className="text-[#E94057]" size={20} />
-                    <h4 className="text-xl font-bold">AI Persona Insight</h4>
+                  <div className="flex items-center justify-between gap-3 mb-4">
+                    <div className="flex items-center gap-3">
+                      <Sparkles className="text-[#E94057]" size={20} />
+                      <h4 className="text-xl font-bold">AI Persona Insight</h4>
+                    </div>
+                    <button
+                      onClick={handleRefreshAnalysis}
+                      title="Re-analyse with updated answers"
+                      className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-white/50 hover:text-white/90 transition-colors cursor-pointer"
+                    >
+                      <RotateCcw size={13} />
+                      Refresh
+                    </button>
                   </div>
                   <p className="text-white/80 leading-relaxed text-sm md:text-base mb-6">
                     {profile.persona_analysis.summary || "Your analysis is being processed..."}
@@ -238,10 +317,16 @@ const DashboardPage: React.FC = () => {
           </section>
 
           <section className="px-6 md:px-12 lg:px-24 mb-12">
-            <div className="flex overflow-x-auto md:grid md:grid-cols-3 gap-6 no-scrollbar pb-2 md:pb-0">
-              <StatCard icon={<Clock size={22} />} title="Voice Time" value={`${usage?.voice_minutes_left || 0}m`} color="bg-blue-500" />
-              <StatCard icon={<MessageSquare size={22} />} title="Chat Credits" value={`${Number(usage?.messages_left || 0).toFixed(2)} left`} color="bg-purple-500" />
-              <StatCard icon={<ShieldCheck size={22} />} title="Plan Level" value={usage?.plan_type || 'Free'} color={themeData.colors.brand} />
+            <div className="flex overflow-x-auto md:overflow-visible md:grid md:grid-cols-3 gap-6 no-scrollbar pb-4">
+              <Link to="/billing" className="block min-w-[240px] md:min-w-0">
+                <StatCard icon={<Clock size={22} />} title="Voice Time" value={`${usage?.voice_minutes_left || 0}m`} color="bg-blue-500" />
+              </Link>
+              <Link to="/billing" className="block min-w-[240px] md:min-w-0">
+                <StatCard icon={<MessageSquare size={22} />} title="Chat Credits" value={`${Number(usage?.messages_left || 0).toFixed(2)} left`} color="bg-purple-500" />
+              </Link>
+              <Link to="/billing" className="block min-w-[240px] md:min-w-0">
+                <StatCard icon={<ShieldCheck size={22} />} title="Plan Level" value={usage?.plan_type || 'Free'} color={themeData.colors.brand} />
+              </Link>
             </div>
           </section>
 
@@ -252,36 +337,85 @@ const DashboardPage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
-              {advisors.map((advisor) => (
-                <div key={advisor.id} className="group bg-white rounded-[2rem] p-5 md:p-8 border border-gray-50 shadow-sm hover:shadow-md transition-all flex flex-col items-center">
-                  <div className="relative mb-5">
-                    <img src={advisor.image_url} alt={advisor.name}
-                      className="w-20 h-20 md:w-24 md:h-24 rounded-[1.5rem] md:rounded-[2rem] object-cover shadow-sm transition-transform group-hover:scale-105" />
-                    {advisor.is_online && <div className="absolute bottom-0.5 right-0.5 w-4 h-4 bg-green-500 border-2 border-white rounded-full shadow-sm" />}
-                  </div>
+              {advisors.map((advisor, index) => {
+                const isFreeUser = !usage?.plan_type || usage?.plan_type === 'Free';
+                const isLocked = isFreeUser && index >= 4;
 
-                  <div className="flex items-center gap-1 text-yellow-500 text-[10px] mb-1 px-2 py-0.5 bg-yellow-50 rounded-full">
-                    <Star size={10} fill="currentColor" /> {advisor.rating}
-                  </div>
+                const handleAdvisorClick = (type: 'chat' | 'voice') => {
+                  if (isLocked) {
+                    navigate('/billing');
+                  } else {
+                    handleDivert(advisor.id, type);
+                  }
+                };
 
-                  <h4 className="text-sm md:text-xl font-bold mb-0.5 text-center" style={{ fontFamily: 'DM Serif Display', color: themeData.colors.textHeading }}>{advisor.name}</h4>
-                  <p className="text-[9px] md:text-[11px] uppercase font-bold opacity-30 tracking-wide mb-6 text-center">{advisor.specialty}</p>
+                return (
+                  <div
+                    key={advisor.id}
+                    className={`group bg-white rounded-[2rem] p-5 md:p-8 shadow-sm transition-all flex flex-col items-center relative ${isLocked
+                      ? 'cursor-pointer border-2 border-[#E94057]/20'
+                      : 'hover:shadow-md border border-gray-50'
+                      }`}
+                    onClick={isLocked ? () => navigate('/billing') : undefined}
+                  >
+                    {/* Photo */}
+                    <div className="relative mb-5">
+                      <img src={advisor.image_url} alt={advisor.name}
+                        className={`w-20 h-20 md:w-24 md:h-24 rounded-[1.5rem] md:rounded-[2rem] object-cover shadow-sm transition-transform ${!isLocked ? 'group-hover:scale-105' : 'opacity-[0.85]'}`} />
+                      {/* Online dot — only for unlocked */}
+                      {advisor.is_online && !isLocked && (
+                        <div className="absolute bottom-0.5 right-0.5 w-4 h-4 bg-green-500 border-2 border-white rounded-full shadow-sm" />
+                      )}
+                      {/* Lock badge on photo — only for locked */}
+                      {isLocked && (
+                        <div className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full flex items-center justify-center shadow-md border-2 border-white" style={{ backgroundColor: themeData.colors.brand }}>
+                          <Lock size={10} className="text-white" />
+                        </div>
+                      )}
+                    </div>
 
-                  <div className="flex gap-2 w-full mt-auto">
-                    <button
-                      onClick={() => handleDivert(advisor.id, 'chat')}
-                      className="flex-1 h-10 md:h-12 bg-gray-50 rounded-xl flex items-center justify-center hover:bg-black hover:text-white transition-all shadow-inner cursor-pointer">
-                      <MessageSquare size={16} />
-                    </button>
-                    <button
-                      onClick={() => handleDivert(advisor.id, 'voice')}
-                      className="flex-1 h-10 md:h-12 rounded-xl text-white flex items-center justify-center transition-all shadow-md hover:brightness-110 active:scale-95 cursor-pointer"
-                      style={{ backgroundColor: themeData.colors.brand }}>
-                      <Phone size={16} />
-                    </button>
+                    {/* Rating */}
+                    <div className={`flex items-center gap-1 text-yellow-500 text-[10px] mb-1 px-2 py-0.5 bg-yellow-50 rounded-full ${isLocked ? 'opacity-[0.8]' : ''}`}>
+                      <Star size={10} fill="currentColor" /> {advisor.rating}
+                    </div>
+
+                    {/* Name */}
+                    <h4 className={`text-sm md:text-xl font-bold mb-0.5 text-center ${isLocked ? 'opacity-[0.85]' : ''}`} style={{ fontFamily: 'DM Serif Display', color: themeData.colors.textHeading }}>{advisor.name}</h4>
+
+                    {/* Specialty */}
+                    <p className={`text-[9px] md:text-[11px] uppercase font-bold tracking-wide mb-6 text-center ${isLocked ? 'opacity-50' : 'opacity-60'}`}>{advisor.specialty}</p>
+
+                    {/* Action area — upgrade CTA for locked, buttons for unlocked */}
+                    {isLocked ? (
+                      <div className="w-full mt-auto">
+                        <div
+                          className="w-full h-10 md:h-12 rounded-xl flex items-center justify-center gap-1.5"
+                          style={{ backgroundColor: themeData.colors.brand }}
+                        >
+                          <Lock size={11} className="text-white" />
+                          {/* Short on mobile, full on desktop */}
+                          <span className="md:hidden text-[10px] text-white font-black uppercase tracking-wider">Upgrade</span>
+                          <span className="hidden md:block text-[10px] text-white font-black uppercase tracking-widest">Upgrade to Unlock</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2 w-full mt-auto">
+                        <button
+                          onClick={() => handleAdvisorClick('chat')}
+                          className="flex-1 h-10 md:h-12 bg-gray-50 rounded-xl flex items-center justify-center hover:bg-black hover:text-white transition-all shadow-inner cursor-pointer">
+                          <MessageSquare size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleAdvisorClick('voice')}
+                          className="flex-1 h-10 md:h-12 rounded-xl text-white flex items-center justify-center transition-all shadow-md hover:brightness-110 active:scale-95 cursor-pointer"
+                          style={{ backgroundColor: themeData.colors.brand }}>
+                          <Phone size={16} />
+                        </button>
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </section>
         </main>
@@ -290,7 +424,7 @@ const DashboardPage: React.FC = () => {
           isOpen={isDiscoveryOpen}
           onClose={() => setIsDiscoveryOpen(false)}
           userId={profile?.id}
-          onSuccess={() => setIsAnalyzing(true)}
+          onSuccess={handleFormSuccess}
         />
 
         <Footer />
@@ -302,10 +436,10 @@ const DashboardPage: React.FC = () => {
 const StatCard = ({ icon, title, value, color }: any) => {
   const isHex = color.startsWith('#');
   return (
-    <div className="min-w-[240px] md:min-w-0 bg-white p-6 rounded-[2rem] border border-gray-50 shadow-sm flex items-center gap-4 group transition-all">
+    <div className="w-full bg-white p-6 rounded-[2rem] border border-gray-50 shadow-sm flex items-center gap-4 group transition-all cursor-pointer">
       <div className={`w-12 h-12 rounded-xl text-white flex items-center justify-center shadow-md transition-transform group-hover:rotate-6 ${!isHex ? color : ''}`} style={isHex ? { backgroundColor: color } : {}}>{icon}</div>
       <div>
-        <p className="text-[9px] font-black uppercase opacity-20 tracking-widest mb-0.5" style={{ color: themeData.colors.textBody }}>{title}</p>
+        <p className="text-[9px] font-black uppercase opacity-60 tracking-widest mb-0.5" style={{ color: themeData.colors.textBody }}>{title}</p>
         <h3 className="text-xl font-bold" style={{ color: themeData.colors.textHeading }}>{value}</h3>
       </div>
     </div>

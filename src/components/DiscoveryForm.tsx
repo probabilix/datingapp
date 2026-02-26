@@ -18,6 +18,10 @@ const DiscoveryForm: React.FC<DiscoveryFormProps> = ({ isOpen, onClose, userId, 
 
     useEffect(() => {
         if (isOpen) {
+            // Always restart from step 1 — works for first time and every refresh
+            setCurrentStep(1);
+            setAnswers({});
+            setLoading(true);
             const fetchQuestions = async () => {
                 const { data } = await supabase
                     .from('discovery_questions')

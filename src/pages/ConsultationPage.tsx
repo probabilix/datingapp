@@ -4,8 +4,9 @@ import { supabase } from "../lib/supabaseClient";
 import { themeData } from "../data/themeData";
 import Vapi from "@vapi-ai/web";
 import {
-  MessageSquare, Phone, ChevronLeft, Sparkles, Send,
-  MicOff, Volume2, AlertCircle, Clock
+  MessageSquare, Phone, ChevronLeft, Sparkles,
+  ArrowUp, Loader2,
+  MicOff, Volume2, AlertCircle, Clock, Lock
 } from "lucide-react";
 import Header from "../components/Header";
 import { motion, AnimatePresence } from "framer-motion";
@@ -110,9 +111,18 @@ const ConsultationPage: React.FC = () => {
       }
 
       const agentId = searchParams.get("agent");
-      const currentAdvisor = advisorsRes.data?.find((a: any) => a.id === agentId) || advisorsRes.data?.[0] || null;
-      setSelectedAdvisor(currentAdvisor);
+      const allAdvisors = advisorsRes.data || [];
+      const currentAdvisor = allAdvisors.find((a: any) => a.id === agentId) || allAdvisors[0] || null;
 
+      // Same lock rule as Dashboard: Free users can only access first 4 advisors
+      const advisorIndex = allAdvisors.findIndex((a: any) => a.id === currentAdvisor?.id);
+      const isFreeUser = !usageRes.data?.plan_type || usageRes.data?.plan_type === 'Free';
+      if (isFreeUser && advisorIndex >= 4) {
+        navigate('/billing');
+        return;
+      }
+
+      setSelectedAdvisor(currentAdvisor);
       setLoading(false);
     })();
 
@@ -123,6 +133,15 @@ const ConsultationPage: React.FC = () => {
   useEffect(() => {
     if (advisors.length > 0) {
       const agentId = searchParams.get("agent");
+      const advisorIndex = advisors.findIndex((a: any) => a.id === agentId);
+      const isFreeUser = !usage?.plan_type || usage?.plan_type === 'Free';
+
+      // Redirect if trying to access a locked advisor directly via URL
+      if (isFreeUser && advisorIndex >= 4) {
+        navigate('/billing');
+        return;
+      }
+
       const currentAdvisor = advisors.find((a: any) => a.id === agentId) || advisors[0];
       setSelectedAdvisor(currentAdvisor);
     }
@@ -308,23 +327,39 @@ const ConsultationPage: React.FC = () => {
       <main className={`flex-grow pt-20 md:pt-28 pb-4 px-4 md:px-8 max-w-[1600px] mx-auto flex gap-6 w-full h-full relative ${isMobile ? 'flex-col' : 'flex-row'}`}>
         {!isMobile && (
           <aside className="w-72 flex flex-col space-y-4">
-            <button onClick={() => navigate("/dashboard")} className="flex items-center gap-2 text-[10px] font-black uppercase opacity-30 hover:opacity-100 mb-4 transition-all cursor-pointer">
+            <button onClick={() => navigate("/dashboard")} className="flex items-center gap-2 text-[10px] font-black uppercase opacity-69 hover:opacity-100 mb-4 transition-all cursor-pointer">
               <ChevronLeft size={14} /> Back to Dashboard
             </button>
             <div className="flex-1 overflow-y-auto no-scrollbar space-y-3">
-              {advisors.map((agent) => (
-                <button
-                  key={agent.id}
-                  onClick={() => setSearchParams({ agent: agent.id, mode })}
-                  className={`w-full p-4 rounded-[2rem] flex items-center gap-4 transition-all border-2 cursor-pointer ${selectedAdvisor?.id === agent.id ? "bg-white border-black shadow-xl" : "bg-white/40 border-transparent opacity-60"}`}
-                >
-                  <img src={agent.image_url} className="w-12 h-12 rounded-2xl object-cover" alt="" />
-                  <div className="text-left">
-                    <p className="font-bold text-sm leading-tight">{agent.name}</p>
-                    <p className="text-[9px] font-black uppercase tracking-widest opacity-40">{agent.specialty}</p>
-                  </div>
-                </button>
-              ))}
+              {advisors.map((agent, idx) => {
+                const isFreeUser = !usage?.plan_type || usage?.plan_type === 'Free';
+                const isLocked = isFreeUser && idx >= 4;
+                return (
+                  <button
+                    key={agent.id}
+                    onClick={() => {
+                      if (isLocked) { navigate('/billing'); return; }
+                      setSearchParams({ agent: agent.id, mode });
+                    }}
+                    className={`w-full p-4 rounded-[2rem] flex items-center gap-4 transition-all border-2 cursor-pointer relative
+                      ${selectedAdvisor?.id === agent.id ? "bg-white border-black shadow-xl" : "bg-white/40 border-transparent"}
+                      ${isLocked ? "opacity-60" : "opacity-100 hover:opacity-80"}`}
+                  >
+                    <div className="relative flex-shrink-0">
+                      <img src={agent.image_url} className="w-12 h-12 rounded-2xl object-cover" alt="" />
+                      {isLocked && (
+                        <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center border-2 border-white" style={{ backgroundColor: '#E94057' }}>
+                          <Lock size={8} className="text-white" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-left flex-1 min-w-0">
+                      <p className="font-bold text-sm leading-tight truncate">{agent.name}</p>
+                      <p className="text-[9px] font-black uppercase tracking-widest opacity-60 truncate">{agent.specialty}</p>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </aside>
         )}
@@ -339,7 +374,7 @@ const ConsultationPage: React.FC = () => {
               </div>
               <div className="hidden xs:block">
                 <h3 className="font-bold text-base md:text-xl leading-none mb-1">{selectedAdvisor?.name}</h3>
-                <p className="text-[8px] md:text-[10px] font-black uppercase tracking-widest opacity-40 flex items-center gap-1">
+                <p className="text-[8px] md:text-[10px] font-black uppercase tracking-widest opacity-69 flex items-center gap-1">
                   <Sparkles size={10} className="text-[#E94057]" /> {selectedAdvisor?.specialty}
                 </p>
               </div>
@@ -419,10 +454,18 @@ const ConsultationPage: React.FC = () => {
                 />
                 <button
                   onClick={handleSendMessage}
-                  disabled={isTyping}
-                  className={`w-14 h-14 rounded-full flex items-center justify-center shadow-xl transition-all ${isTyping ? 'bg-gray-300 cursor-not-allowed' : 'bg-[#E94057] hover:brightness-110 active:scale-95 cursor-pointer'}`}
+                  disabled={isTyping || !input.trim()}
+                  className="w-14 h-14 rounded-full flex items-center justify-center text-white transition-all duration-300 active:scale-95 disabled:opacity-40 cursor-pointer"
+                  style={{
+                    backgroundColor: '#E94057',
+                    boxShadow: input.trim() && !isTyping
+                      ? '0 0 0 4px rgba(233,64,87,0.15), 0 0 20px rgba(233,64,87,0.45)'
+                      : 'none'
+                  }}
                 >
-                  {isTyping ? <Clock size={20} className="animate-spin text-white" /> : <Send size={20} className="text-white" />}
+                  {isTyping
+                    ? <Loader2 size={20} className="animate-spin" />
+                    : <ArrowUp size={20} strokeWidth={2.5} />}
                 </button>
               </div>
             </footer>
