@@ -196,9 +196,9 @@ const CheckoutPage: React.FC = () => {
             </button>
             <h2 className="text-4xl font-bold mb-8" style={{ fontFamily: 'DM Serif Display' }}>Review Order</h2>
 
-            <div className="bg-white p-6 md:p-10 rounded-[2.5rem] shadow-sm">
+            <div className="p-6 md:p-10 rounded-[2.5rem] shadow-sm" style={{ backgroundColor: 'var(--color-card-bg)', border: '1px solid var(--color-border)' }}>
               <div className="flex flex-col md:flex-row md:items-center gap-6 mb-10">
-                <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center shrink-0"><CreditCard className="text-[#E94057]" /></div>
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0" style={{ backgroundColor: 'var(--color-input-solid)' }}><CreditCard className="text-[#E94057]" /></div>
                 <div className="flex-1">
                   <h3 className="font-bold text-xl md:text-2xl">{purchaseItem.name}</h3>
                   <p className="text-[10px] font-black uppercase text-gray-300">
@@ -213,17 +213,18 @@ const CheckoutPage: React.FC = () => {
                 <form onSubmit={handleApplyCoupon} className="flex gap-2">
                   <input
                     placeholder="COUPON CODE"
-                    className="flex-1 bg-gray-50 p-4 md:p-5 rounded-2xl outline-none font-bold text-xs uppercase w-full"
+                    className="flex-1 p-4 md:p-5 rounded-2xl outline-none font-bold text-xs uppercase w-full"
+                    style={{ backgroundColor: 'var(--color-input-solid)', color: 'var(--color-text-heading)', border: '1px solid var(--color-border)' }}
                     value={couponInput}
                     onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
                   />
-                  <button type="submit" className="bg-black text-white px-6 md:px-10 rounded-2xl font-bold text-xs cursor-pointer">APPLY</button>
+                  <button type="submit" className="text-white px-6 md:px-10 rounded-2xl font-bold text-xs cursor-pointer" style={{ backgroundColor: '#E94057' }}>APPLY</button>
                 </form>
                 {couponError && <p className="text-red-500 text-[10px] font-bold uppercase px-2">{couponError}</p>}
                 {appliedCoupon && <p className="text-green-600 text-[10px] font-bold uppercase px-2">COUPON APPLIED: {appliedCoupon.code}</p>}
               </div>
 
-              <div className="pt-8 border-t mt-8 space-y-4">
+              <div className="pt-8 border-t mt-8 space-y-4" style={{ borderColor: 'var(--color-border)' }}>
                 {appliedCoupon && (
                   <div className="flex justify-between text-green-600 font-bold text-xs uppercase">
                     <span>Discount Applied</span>
@@ -237,14 +238,14 @@ const CheckoutPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-green-50/50 p-6 rounded-3xl border border-green-100 flex items-center gap-4">
-              <ShieldCheck className="text-green-600 shrink-0" />
-              <p className="text-[10px] font-bold text-green-800 uppercase leading-tight">Your data is protected by 256-bit SSL encryption and processed via certified PCI-compliant gateways.</p>
+            <div className="p-6 rounded-3xl flex items-center gap-4" style={{ backgroundColor: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}>
+              <ShieldCheck className="text-green-500 shrink-0" />
+              <p className="text-[10px] font-bold uppercase leading-tight" style={{ color: 'var(--color-text-body)' }}>Your data is protected by 256-bit SSL encryption and processed via certified PCI-compliant gateways.</p>
             </div>
           </div>
 
           {/* RIGHT: Direct Card Payment + 3rd Party Options */}
-          <div className="bg-white p-6 md:p-12 rounded-[2.5rem] md:rounded-[3.5rem] shadow-2xl border border-gray-100">
+          <div className="p-6 md:p-12 rounded-[2.5rem] md:rounded-[3.5rem] shadow-2xl" style={{ backgroundColor: 'var(--color-card-bg)', border: '1px solid var(--color-border)' }}>
             <h3 className="text-xl font-bold mb-8">Payment Method</h3>
 
             <div className="space-y-8">
@@ -257,9 +258,9 @@ const CheckoutPage: React.FC = () => {
                 <div className="text-center py-6 space-y-4">
                   <div className="flex justify-center gap-4 text-gray-400 mb-4">
                     {/* Visa/Mastercard Icons or placeholders */}
-                    <div className="w-10 h-6 bg-gray-100 rounded"></div>
-                    <div className="w-10 h-6 bg-gray-100 rounded"></div>
-                    <div className="w-10 h-6 bg-gray-100 rounded"></div>
+                    <div className="w-10 h-6 rounded" style={{ backgroundColor: 'var(--color-input-solid)' }}></div>
+                    <div className="w-10 h-6 rounded" style={{ backgroundColor: 'var(--color-input-solid)' }}></div>
+                    <div className="w-10 h-6 rounded" style={{ backgroundColor: 'var(--color-input-solid)' }}></div>
                   </div>
                   <p className="text-sm text-gray-500 font-medium">
                     You will be redirected to Stripe's secure checkout page to complete your purchase.

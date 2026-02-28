@@ -116,7 +116,7 @@ const ResetPasswordPage: React.FC = () => {
 
     if (errorDescription) {
       return (
-        <div className="min-h-screen flex items-center justify-center p-6 bg-white">
+        <div className="min-h-screen flex items-center justify-center p-6" style={{ backgroundColor: 'var(--color-page-bg)' }}>
           <div className="text-center max-w-lg">
             <h1 className="text-2xl font-bold mb-4 text-red-500">Link Expired or Invalid</h1>
             <p className="mb-6 text-gray-600">{errorDescription.replace(/\+/g, ' ')}</p>
@@ -140,7 +140,7 @@ const ResetPasswordPage: React.FC = () => {
 
     // If no hash and no session, then the user just navigated here directly.
     return (
-      <div className="min-h-screen flex items-center justify-center p-6 bg-white">
+      <div className="min-h-screen flex items-center justify-center p-6" style={{ backgroundColor: 'var(--color-page-bg)' }}>
         <div className="text-center max-w-lg">
           <h1 className="text-2xl font-bold mb-4 text-gray-800">Password Reset</h1>
           <p className="mb-6 text-gray-600">Please click the link sent to your email to reset your password.</p>
@@ -153,7 +153,7 @@ const ResetPasswordPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-white">
+    <div className="min-h-screen flex items-center justify-center p-6" style={{ backgroundColor: 'var(--color-page-bg)' }}>
       <Helmet><title>Set New Password | DatingAdvice.io</title></Helmet>
       <div className="w-full max-w-md text-center">
         <div className="w-16 h-16 bg-[#FDEFF2] rounded-2xl flex items-center justify-center mx-auto mb-8">
@@ -182,7 +182,8 @@ const ResetPasswordPage: React.FC = () => {
                   type={showPwd ? "text" : "password"}
                   placeholder="New Password"
                   required
-                  className="w-full px-5 py-4 rounded-xl bg-gray-50 border-none outline-none focus:ring-2 focus:ring-[#E94057]/20 transition-all"
+                  className="w-full px-5 py-4 rounded-xl outline-none focus:ring-2 focus:ring-[#E94057]/20 transition-all"
+                  style={{ backgroundColor: 'var(--color-input-solid)', color: 'var(--color-text-heading)', border: '1px solid var(--color-border)' }}
                   onChange={(e) => setFormData({ ...formData, pwd: e.target.value })}
                 />
                 <button type="button" onClick={() => setShowPwd(!showPwd)}

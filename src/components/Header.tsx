@@ -3,12 +3,14 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { themeData, navigationData } from '../data/themeData';
 import MobileMenu from './MobileMenu';
 import { supabase } from '../lib/supabaseClient';
+import { useTheme } from '../hooks/useTheme';
 
 const Header: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [session, setSession] = useState<any>(null);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const { isDark, toggleTheme } = useTheme();
 
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
 
@@ -61,7 +63,6 @@ const Header: React.FC = () => {
       navigate('/');
     } catch (err) {
       console.error("Logout Error:", err);
-      // Force navigation anyway
       navigate('/');
     }
   };
@@ -72,11 +73,11 @@ const Header: React.FC = () => {
         className="fixed top-0 left-0 w-full z-50 transition-all duration-300 h-20"
         style={{
           backgroundColor:
-            isScrolled || isDashboard ? 'rgba(255,255,255,0.95)' : 'transparent',
+            isScrolled || isDashboard ? 'var(--color-nav-bg)' : 'transparent',
           backdropFilter: isScrolled || isDashboard ? 'blur(10px)' : 'none',
           borderBottom:
             isScrolled || isDashboard
-              ? `1px solid ${themeData.colors.border}`
+              ? `1px solid var(--color-border)`
               : 'transparent',
         }}
       >
@@ -95,8 +96,8 @@ const Header: React.FC = () => {
               ♥
             </div>
             <span
-              className="ml-3 text-2xl font-bold tracking-tight text-[#12172D]"
-              style={{ fontFamily: 'DM Serif Display' }}
+              className="ml-3 text-2xl font-bold tracking-tight"
+              style={{ fontFamily: 'DM Serif Display', color: 'var(--color-text-heading)' }}
             >
               DatingAdvice
             </span>
@@ -105,15 +106,16 @@ const Header: React.FC = () => {
           {/* DESKTOP CENTER */}
           <div className="hidden md:flex items-center gap-10">
             {isDashboard ? (
-              <p className="text-sm font-semibold text-[#5A5E73] italic">
-                “Consistency turns potential into success.”
+              <p className="text-sm font-semibold italic" style={{ color: 'var(--color-text-body)' }}>
+                "Consistency turns potential into success."
               </p>
             ) : (
               navigationData.map((link) => (
                 <a
                   key={link.label}
                   href={link.path}
-                  className="text-[15px] font-medium text-[#5A5E73] hover:text-[#E94057] transition-all"
+                  className="text-[15px] font-medium transition-all hover:text-[#E94057]"
+                  style={{ color: 'var(--color-text-body)' }}
                 >
                   {link.label}
                 </a>
@@ -122,10 +124,30 @@ const Header: React.FC = () => {
           </div>
 
           {/* RIGHT SIDE */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+
+            {/* THEME TOGGLE BUTTON — visible always, desktop + mobile */}
+            <button
+              onClick={toggleTheme}
+              className="theme-toggle w-9 h-9 rounded-full flex items-center justify-center text-lg border transition-all"
+              style={{
+                backgroundColor: 'var(--color-card-bg)',
+                borderColor: 'var(--color-border)',
+                color: 'var(--color-text-heading)',
+              }}
+              aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+              title={isDark ? 'Light Mode' : 'Dark Mode'}
+            >
+              {isDark ? '☀️' : '🌙'}
+            </button>
+
             {!session ? (
               <>
-                <Link to="/login" className="hidden md:block text-[15px] font-semibold text-[#12172D]">
+                <Link
+                  to="/login"
+                  className="hidden md:block text-[15px] font-semibold"
+                  style={{ color: 'var(--color-text-heading)' }}
+                >
                   Sign In
                 </Link>
                 <Link to="/signup">
@@ -138,13 +160,14 @@ const Header: React.FC = () => {
                 </Link>
                 <button
                   onClick={() => setIsMobileMenuOpen(true)}
-                  className="md:hidden text-3xl text-[#12172D]"
+                  className="md:hidden text-3xl"
+                  style={{ color: 'var(--color-text-heading)' }}
                 >
                   ☰
                 </button>
               </>
             ) : (
-              <div className="flex items-center gap-6 relative">
+              <div className="flex items-center gap-4 relative">
                 {!isDashboard && (
                   <Link
                     to="/dashboard"
@@ -159,7 +182,8 @@ const Header: React.FC = () => {
                 <div className="relative" ref={profileMenuRef}>
                   <button
                     onClick={() => setShowProfileMenu(!showProfileMenu)}
-                    className="w-10 h-10 rounded-full border-2 border-gray-100 p-0.5 hover:border-[#E94057] transition-all overflow-hidden shadow-sm"
+                    className="w-10 h-10 rounded-full border-2 p-0.5 hover:border-[#E94057] transition-all overflow-hidden shadow-sm"
+                    style={{ borderColor: 'var(--color-border)' }}
                   >
                     <img
                       src={
@@ -173,27 +197,44 @@ const Header: React.FC = () => {
                   </button>
 
                   {showProfileMenu && (
-                    <div className="absolute top-14 right-0 w-48 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                      <div className="px-4 py-3 border-b border-gray-50 mb-1 text-[11px] font-bold truncate opacity-40">
+                    <div
+                      className="absolute top-14 right-0 w-48 rounded-2xl shadow-2xl py-2 animate-in fade-in slide-in-from-top-2 duration-200"
+                      style={{
+                        backgroundColor: 'var(--color-card-bg)',
+                        border: '1px solid var(--color-border)',
+                      }}
+                    >
+                      <div
+                        className="px-4 py-3 mb-1 text-[11px] font-bold truncate opacity-40"
+                        style={{ borderBottom: '1px solid var(--color-border)' }}
+                      >
                         {session.user.email}
                       </div>
                       <Link
                         to="/dashboard"
                         onClick={() => setShowProfileMenu(false)}
-                        className="block px-4 py-2.5 text-sm font-bold hover:bg-gray-50"
+                        className="block px-4 py-2.5 text-sm font-bold transition-colors"
+                        style={{ color: 'var(--color-text-heading)' }}
+                        onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--color-card-hover)')}
+                        onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
                       >
                         Dashboard
                       </Link>
                       <Link
                         to="/billing"
                         onClick={() => setShowProfileMenu(false)}
-                        className="block px-4 py-2.5 text-sm font-bold hover:bg-gray-50"
+                        className="block px-4 py-2.5 text-sm font-bold transition-colors"
+                        style={{ color: 'var(--color-text-heading)' }}
+                        onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--color-card-hover)')}
+                        onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
                       >
                         Billing
                       </Link>
                       <button
                         onClick={handleLogout}
-                        className="w-full text-left px-4 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50"
+                        className="w-full text-left px-4 py-2.5 text-sm font-bold text-red-500 transition-colors"
+                        onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'rgba(239,68,68,0.08)')}
+                        onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
                       >
                         Log Out
                       </button>
@@ -204,7 +245,8 @@ const Header: React.FC = () => {
                 {!isDashboard && (
                   <button
                     onClick={() => setIsMobileMenuOpen(true)}
-                    className="md:hidden text-3xl text-[#12172D]"
+                    className="md:hidden text-3xl"
+                    style={{ color: 'var(--color-text-heading)' }}
                   >
                     ☰
                   </button>

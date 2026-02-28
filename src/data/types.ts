@@ -3,20 +3,26 @@ export interface ThemePalette {
   colors: {
     brand: string;
     brandHover: string;
-    bgSoft: string;
-    bgSoftDark: string;      // Fix: Add this to clear the red line
-    bgAccent: string;
-    textHeading: string;
     brandDeep: string;
     pageBackground: string;
-    textHeadingDark: string;  // Fix: Add this to clear the red line
-    textBody: string;
-    textBodyDark: string;     // Fix: Add this to clear the red line
-    border: string;
-    borderDark: string;       // Fix: Add this to clear the red line
-    white: string;
-    cardDark: string;         // Fix: Add this to clear the red line
+    bgSoft: string;
+    bgAccent: string;
     bgFooter: string;
+    cardBg: string;
+    textHeading: string;
+    textBody: string;
+    textMuted: string;
+    border: string;
+    borderSoft: string;
+    white: string;
+    inputBg: string;
+    inputSolid: string;
+    // Keep old dark keys for backward compat
+    bgSoftDark: string;
+    cardDark: string;
+    textHeadingDark: string;
+    textBodyDark: string;
+    borderDark: string;
   };
 }
 

@@ -1,33 +1,43 @@
 import { type ThemePalette, type NavItem } from './types';
 
+// All color values are CSS variables — theme switches automatically when
+// <html class="dark"> is toggled. Brand red stays the same in both themes.
 export const themeData: ThemePalette = {
   colors: {
-    // 🔴 Brand
+    // 🔴 Brand (same in both themes)
     brand: "#E94057",
     brandHover: "#d6364d",
     brandDeep: "#b91c1c",
 
-    // 🟤 GLOBAL BACKGROUNDS (IMPORTANT)
-    pageBackground: "#F7F3EE", // 👈 SINGLE SOURCE OF TRUTH
-    bgSoft: "#F7F3EE",
-    bgAccent: "#FFE4E6",
-    bgFooter: "#F2EDE4",
-
-    // 🌙 Dark mode
-    bgSoftDark: "#121212",
-    cardDark: "#1E1E1E",
+    // 🎨 Backgrounds — all via CSS vars
+    pageBackground: "var(--color-page-bg)",
+    bgSoft: "var(--color-bg-soft)",
+    bgAccent: "var(--color-bg-accent)",
+    bgFooter: "var(--color-bg-footer)",
+    cardBg: "var(--color-card-bg)",
 
     // 📝 Text
-    textHeading: "#12172D",
-    textHeadingDark: "#FFFFFF",
-    textBody: "#5A5E73",
-    textBodyDark: "#A0A0A0",
+    textHeading: "var(--color-text-heading)",
+    textBody: "var(--color-text-body)",
+    textMuted: "var(--color-text-muted)",
 
     // 🧱 Borders
-    border: "#E8E2D9",
-    borderDark: "#2A2A2A",
+    border: "var(--color-border)",
+    borderSoft: "var(--color-border-soft)",
 
+    // 🔲 Inputs
+    inputBg: "var(--color-input-bg)",
+    inputSolid: "var(--color-input-solid)",
+
+    // White
     white: "#FFFFFF",
+
+    // Legacy dark-mode keys kept for backward compat
+    bgSoftDark: "#121212",
+    cardDark: "#1E1E1E",
+    textHeadingDark: "#FFFFFF",
+    textBodyDark: "#A0A0A0",
+    borderDark: "#2A2A2A",
   }
 };
 

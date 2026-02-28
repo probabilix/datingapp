@@ -26,9 +26,9 @@ const OnboardingLayout: React.FC<OnboardingLayoutProps> = ({ children, currentSt
                 style={{ backgroundColor: '#E2E8F0' }}
             />
 
-            <div className="w-full max-w-md bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 relative overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="w-full max-w-md backdrop-blur-xl rounded-3xl shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]" style={{ backgroundColor: 'var(--color-card-bg)', border: '1px solid var(--color-border)' }}>
                 {/* Progress Bar */}
-                <div className="h-1.5 w-full bg-gray-100/50">
+                <div className="h-1.5 w-full" style={{ backgroundColor: 'var(--color-border)' }}>
                     <motion.div
                         className="h-full rounded-r-full"
                         style={{ backgroundColor: themeData.colors.brand }}
@@ -40,7 +40,7 @@ const OnboardingLayout: React.FC<OnboardingLayoutProps> = ({ children, currentSt
 
                 {/* Content Container */}
                 <div className="p-8 md:p-10 flex flex-col h-full overflow-y-auto custom-scrollbar">
-                    <div className="flex justify-between items-center mb-6 opacity-40 text-xs font-bold tracking-widest uppercase">
+                    <div className="flex justify-between items-center mb-6 text-xs font-bold tracking-widest uppercase" style={{ color: 'var(--color-text-muted)' }}>
                         <span>Step {currentStep + 1} of {totalSteps}</span>
                         <span>Welcome Tutorial</span>
                     </div>

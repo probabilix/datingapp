@@ -96,7 +96,7 @@ const AboutPage: React.FC = () => {
           <section className="mb-10 md:mb-16">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
               {siteStats.map((stat, idx) => (
-                <div key={idx} className="bg-white rounded-2xl md:rounded-[2rem] p-4 md:p-8 text-center shadow-sm border border-gray-100 overflow-hidden">
+                <div key={idx} className="rounded-2xl md:rounded-[2rem] p-4 md:p-8 text-center shadow-sm overflow-hidden" style={{ backgroundColor: 'var(--color-card-bg)', border: '1px solid var(--color-border)' }}>
                   <div className="text-xl md:text-2xl font-black mb-1 whitespace-nowrap leading-tight"
                     style={{ color: themeData.colors.brand }}>
                     {stat.value}
@@ -112,7 +112,7 @@ const AboutPage: React.FC = () => {
 
           {/* ── Mission ────────────────────────────────────── */}
           <section className="mb-6 md:mb-10">
-            <div className="bg-white rounded-2xl md:rounded-[2.5rem] p-6 md:p-12 shadow-sm border border-gray-100">
+            <div className="rounded-2xl md:rounded-[2.5rem] p-6 md:p-12 shadow-sm" style={{ backgroundColor: 'var(--color-card-bg)', border: '1px solid var(--color-border)' }}>
               <div className="flex items-center gap-3 mb-4 md:mb-6">
                 <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center flex-shrink-0"
                   style={{ backgroundColor: `${themeData.colors.brand}20` }}>
@@ -133,9 +133,9 @@ const AboutPage: React.FC = () => {
 
           {/* ── Vision ─────────────────────────────────────── */}
           <section className="mb-6 md:mb-10">
-            <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-2xl md:rounded-[2.5rem] p-6 md:p-12 border border-pink-100">
+            <div className="rounded-2xl md:rounded-[2.5rem] p-6 md:p-12" style={{ backgroundColor: 'var(--color-card-bg)', border: '1px solid var(--color-border)' }}>
               <div className="flex items-center gap-3 mb-4 md:mb-6">
-                <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center bg-white shadow-md flex-shrink-0">
+                <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shadow-md flex-shrink-0" style={{ backgroundColor: 'var(--color-card-bg)' }}>
                   <Eye size={20} className="md:hidden" style={{ color: themeData.colors.brand }} />
                   <Eye size={28} className="hidden md:block" style={{ color: themeData.colors.brand }} />
                 </div>
@@ -165,7 +165,7 @@ const AboutPage: React.FC = () => {
               {aboutData.values.map((value, idx) => {
                 const IconComponent = valueIcons[idx];
                 return (
-                  <div key={idx} className="bg-white rounded-2xl md:rounded-[2rem] p-5 md:p-8 shadow-sm border border-gray-100">
+                  <div key={idx} className="rounded-2xl md:rounded-[2rem] p-5 md:p-8 shadow-sm" style={{ backgroundColor: 'var(--color-card-bg)', border: '1px solid var(--color-border)' }}>
                     <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center mb-4"
                       style={{ backgroundColor: `${themeData.colors.brand}15` }}>
                       <IconComponent size={20} style={{ color: themeData.colors.brand }} />
@@ -186,9 +186,9 @@ const AboutPage: React.FC = () => {
 
           {/* ── Team ───────────────────────────────────────── */}
           <section className="mb-6 md:mb-10">
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl md:rounded-[2.5rem] p-6 md:p-12 border border-blue-100">
+            <div className="rounded-2xl md:rounded-[2.5rem] p-6 md:p-12" style={{ backgroundColor: 'var(--color-card-bg)', border: '1px solid var(--color-border)' }}>
               <div className="flex items-center gap-3 mb-4 md:mb-6">
-                <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center bg-white shadow-md flex-shrink-0">
+                <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shadow-md flex-shrink-0" style={{ backgroundColor: 'var(--color-card-bg)' }}>
                   <Users size={20} className="md:hidden" style={{ color: themeData.colors.brand }} />
                   <Users size={28} className="hidden md:block" style={{ color: themeData.colors.brand }} />
                 </div>

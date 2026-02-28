@@ -73,7 +73,7 @@ const BlogsPage: React.FC = () => {
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="bg-white rounded-[24px] md:rounded-[32px] overflow-hidden shadow-sm border border-black/5 flex flex-col h-full">
+                <div key={i} className="rounded-[24px] md:rounded-[32px] overflow-hidden shadow-sm flex flex-col h-full" style={{ backgroundColor: 'var(--color-card-bg)', border: '1px solid var(--color-border)' }}>
                   <div className="h-48 md:h-56 bg-gray-100 animate-pulse"></div>
                   <div className="p-6 md:p-8 flex flex-col flex-grow gap-4">
                     <div className="flex gap-4">
@@ -93,7 +93,7 @@ const BlogsPage: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
               {posts.map((post) => (
-                <Link to={`/blog/${post.slug}`} key={post.id} className="bg-white rounded-[24px] md:rounded-[32px] overflow-hidden shadow-sm border border-black/5 flex flex-col group hover:shadow-md transition-all duration-300">
+                <Link to={`/blog/${post.slug}`} key={post.id} className="rounded-[24px] md:rounded-[32px] overflow-hidden shadow-sm flex flex-col group hover:shadow-md transition-all duration-300" style={{ backgroundColor: 'var(--color-card-bg)', border: '1px solid var(--color-border)' }}>
                   <div className="h-48 md:h-56">
                     <ImageWithSkeleton
                       src={`${post.image_url}?width=800&format=webp`}

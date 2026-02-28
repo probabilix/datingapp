@@ -58,7 +58,7 @@ const BlogPostPage: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+            <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--color-bg-soft)' }}>
                 <Loader2 className="animate-spin text-gray-400" size={32} />
             </div>
         );
@@ -66,7 +66,7 @@ const BlogPostPage: React.FC = () => {
 
     if (error || !post) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4 text-center">
+            <div className="min-h-screen flex flex-col items-center justify-center px-4 text-center" style={{ backgroundColor: 'var(--color-bg-soft)' }}>
                 <h1 className="text-3xl font-bold mb-4">Post Not Found</h1>
                 <p className="mb-8 opacity-60">The article you are looking for does not exist or has been removed.</p>
                 <Link to="/blogs" className="px-6 py-3 bg-black text-white rounded-xl font-bold text-sm">Return to Blogs</Link>
@@ -84,7 +84,7 @@ const BlogPostPage: React.FC = () => {
             <Header />
 
             <main className="flex-grow pt-24 md:pt-32 pb-12 md:pb-20 px-4 md:px-6">
-                <article className="max-w-[800px] mx-auto bg-white rounded-[24px] md:rounded-[2.5rem] shadow-sm border border-black/5 overflow-hidden">
+                <article className="max-w-[800px] mx-auto rounded-[24px] md:rounded-[2.5rem] shadow-sm overflow-hidden" style={{ backgroundColor: 'var(--color-card-bg)', border: '1px solid var(--color-border)' }}>
                     {/* Hero Image */}
                     <div className="h-[250px] md:h-[400px] w-full relative">
                         <img
@@ -106,14 +106,14 @@ const BlogPostPage: React.FC = () => {
 
                     {/* Content */}
                     <div className="p-6 md:p-16">
-                        <div className="prose prose-lg max-w-none prose-headings:font-serif prose-headings:font-bold prose-headings:text-gray-900 prose-p:text-gray-600 prose-p:leading-relaxed prose-a:text-pink-600 prose-img:rounded-2xl font-serif text-lg leading-relaxed">
+                        <div className="prose prose-lg max-w-none prose-headings:font-serif prose-headings:font-bold prose-a:text-pink-600 prose-img:rounded-2xl font-serif text-lg leading-relaxed" style={{ color: 'var(--color-text-body)' }}>
                             <ReactMarkdown remarkPlugins={[remarkGfm]}>
                                 {post.content}
                             </ReactMarkdown>
                         </div>
                     </div>
 
-                    <div className="bg-gray-50 p-6 md:p-12 border-t border-gray-100 flex justify-between items-center">
+                    <div className="p-6 md:p-12 flex justify-between items-center" style={{ backgroundColor: 'var(--color-input-solid)', borderTop: '1px solid var(--color-border)' }}>
                         <Link to="/blogs" className="font-bold text-sm opacity-60 hover:opacity-100 flex items-center gap-2 transition-opacity">
                             <ArrowLeft size={16} /> Back to Blogs
                         </Link>

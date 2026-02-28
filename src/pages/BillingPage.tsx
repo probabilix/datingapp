@@ -161,7 +161,7 @@ const BillingPage: React.FC = () => {
 
           {/* CURRENT STATUS GRID */}
           <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            <div className="md:col-span-2 bg-white rounded-[2.5rem] p-8 md:p-10 shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="md:col-span-2 rounded-[2.5rem] p-8 md:p-10 shadow-sm flex flex-col md:flex-row justify-between items-center gap-6" style={{ backgroundColor: 'var(--color-card-bg)', border: '1px solid var(--color-border)' }}>
               <div>
                 <span className="text-[10px] font-black uppercase opacity-30 tracking-[0.2em]">Current Status</span>
                 <h2 className="text-4xl font-bold mt-1" style={{ color: themeData.colors.textHeading, fontFamily: 'DM Serif Display' }}>
@@ -178,7 +178,8 @@ const BillingPage: React.FC = () => {
                 <button
                   onClick={handleManageBilling}
                   disabled={processingBilling || userUsage?.plan_type === 'Free' || !userUsage?.plan_type}
-                  className="px-8 py-4 rounded-2xl bg-[#12172D] text-white font-bold hover:scale-105 transition-all shadow-lg flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-8 py-4 rounded-2xl text-white font-bold hover:scale-105 transition-all shadow-lg flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ backgroundColor: '#E94057' }}
                 >
                   {processingBilling ? 'Loading...' : 'Manage Billing'} <CreditCard size={18} />
                 </button>
@@ -188,7 +189,7 @@ const BillingPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm text-center flex flex-col justify-center">
+            <div className="rounded-[2.5rem] p-8 shadow-sm text-center flex flex-col justify-center" style={{ backgroundColor: 'var(--color-card-bg)', border: '1px solid var(--color-border)' }}>
               <span className="text-[10px] font-black uppercase opacity-30 tracking-[0.2em] mb-2">Available Time</span>
               <div className="text-4xl font-black text-[#E94057] mb-1">{userUsage?.voice_minutes_left || 0}m</div>
               <p className="text-xs font-bold text-gray-300 uppercase tracking-tighter">Voice Minutes Left</p>
@@ -197,15 +198,17 @@ const BillingPage: React.FC = () => {
 
           {/* TAB TOGGLE */}
           <div className="flex justify-center mb-12">
-            <div className="bg-gray-100/50 p-1.5 rounded-2xl flex gap-2">
+            <div className="p-1.5 rounded-2xl flex gap-2" style={{ backgroundColor: 'var(--color-input-solid)' }}>
               <button
                 onClick={() => setActiveTab('plans')}
-                className={`px-8 py-3 rounded-xl font-bold text-sm transition-all cursor-pointer ${activeTab === 'plans' ? 'bg-white shadow-md text-[#12172D]' : 'text-gray-400'}`}>
+                className={`px-8 py-3 rounded-xl font-bold text-sm transition-all cursor-pointer ${activeTab === 'plans' ? 'shadow-md' : 'opacity-50'}`}
+                style={activeTab === 'plans' ? { backgroundColor: 'var(--color-card-bg)', color: 'var(--color-text-heading)' } : { color: 'var(--color-text-muted)', backgroundColor: 'transparent' }}>
                 Subscription Plans
               </button>
               <button
                 onClick={() => setActiveTab('addons')}
-                className={`px-8 py-3 rounded-xl font-bold text-sm transition-all cursor-pointer ${activeTab === 'addons' ? 'bg-white shadow-md text-[#12172D]' : 'text-gray-400'}`}>
+                className={`px-8 py-3 rounded-xl font-bold text-sm transition-all cursor-pointer ${activeTab === 'addons' ? 'shadow-md' : 'opacity-50'}`}
+                style={activeTab === 'addons' ? { backgroundColor: 'var(--color-card-bg)', color: 'var(--color-text-heading)' } : { color: 'var(--color-text-muted)', backgroundColor: 'transparent' }}>
                 Add-on Credits
               </button>
             </div>
@@ -270,19 +273,21 @@ const BillingPage: React.FC = () => {
               )
             ) : (
               <div className="md:col-span-3">
-                <div className="bg-white p-10 rounded-[3rem] border-2 border-transparent shadow-sm flex flex-col items-center text-center max-w-2xl mx-auto">
+                <div className="p-10 rounded-[3rem] border-2 border-transparent shadow-sm flex flex-col items-center text-center max-w-2xl mx-auto" style={{ backgroundColor: 'var(--color-card-bg)', color: 'var(--color-text-heading)' }}>
                   <h3 className="text-2xl font-bold mb-6">Custom Top-Up</h3>
 
-                  <div className="flex gap-4 mb-8 bg-gray-50 p-2 rounded-2xl">
+                  <div className="flex gap-4 mb-8 p-2 rounded-2xl" style={{ backgroundColor: 'var(--color-input-solid)' }}>
                     <button
                       onClick={() => setCustomType('voice')}
-                      className={`px-6 py-3 rounded-xl font-bold text-sm transition-all cursor-pointer ${customType === 'voice' ? 'bg-white shadow-md text-[#E94057]' : 'text-gray-400'}`}
+                      className={`px-6 py-3 rounded-xl font-bold text-sm transition-all cursor-pointer`}
+                      style={customType === 'voice' ? { backgroundColor: 'var(--color-card-bg)', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', color: '#E94057' } : { color: 'var(--color-text-muted)', backgroundColor: 'transparent' }}
                     >
                       Voice Credits
                     </button>
                     <button
                       onClick={() => setCustomType('chat')}
-                      className={`px-6 py-3 rounded-xl font-bold text-sm transition-all cursor-pointer ${customType === 'chat' ? 'bg-white shadow-md text-[#E94057]' : 'text-gray-400'}`}
+                      className={`px-6 py-3 rounded-xl font-bold text-sm transition-all cursor-pointer`}
+                      style={customType === 'chat' ? { backgroundColor: 'var(--color-card-bg)', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', color: '#E94057' } : { color: 'var(--color-text-muted)', backgroundColor: 'transparent' }}
                     >
                       Chat Credits
                     </button>
@@ -298,7 +303,8 @@ const BillingPage: React.FC = () => {
                           min="1"
                           value={customAmount}
                           onChange={(e) => setCustomAmount(Math.max(1, parseInt(e.target.value) || 0))}
-                          className="w-full pl-12 pr-6 py-5 bg-gray-50 rounded-2xl text-2xl font-black outline-none focus:ring-2 ring-pink-100 transition-all"
+                          className="w-full pl-12 pr-6 py-5 rounded-2xl text-2xl font-black outline-none focus:ring-2 ring-pink-100 transition-all"
+                          style={{ backgroundColor: 'var(--color-input-solid)', color: 'var(--color-text-heading)' }}
                         />
                       </div>
                     </div>
@@ -320,7 +326,8 @@ const BillingPage: React.FC = () => {
 
                     <button
                       onClick={handleCustomTopUp}
-                      className="w-full py-5 bg-[#12172D] text-white rounded-2xl font-bold hover:scale-105 transition-all shadow-xl flex items-center justify-center gap-2 cursor-pointer"
+                      className="w-full py-5 rounded-2xl text-white font-bold hover:scale-105 transition-all shadow-xl flex items-center justify-center gap-2 cursor-pointer"
+                      style={{ backgroundColor: '#E94057' }}
                     >
                       Proceed to Checkout <ChevronRight size={18} />
                     </button>
@@ -338,13 +345,13 @@ const BillingPage: React.FC = () => {
                 View History <History size={14} />
               </button>
             </div>
-            <div className="bg-white rounded-[2.5rem] border border-gray-100 overflow-hidden shadow-sm">
+            <div className="rounded-[2.5rem] overflow-hidden shadow-sm" style={{ backgroundColor: 'var(--color-card-bg)', border: '1px solid var(--color-border)' }}>
               {transactions.length > 0 ? (
                 <>
                   {/* Desktop Table View */}
                   <table className="w-full text-left hidden md:table">
                     <thead>
-                      <tr className="border-b border-gray-50 text-[10px] uppercase tracking-widest text-gray-400">
+                      <tr className="text-[10px] uppercase tracking-widest" style={{ borderBottom: '1px solid var(--color-border)', color: 'var(--color-text-muted)' }}>
                         <th className="px-10 py-6">Order Details</th>
                         <th className="px-10 py-6">Date</th>
                         <th className="px-10 py-6">Status</th>
@@ -353,9 +360,11 @@ const BillingPage: React.FC = () => {
                     </thead>
                     <tbody className="text-sm font-medium">
                       {transactions.map((tx) => (
-                        <tr key={tx.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                        <tr key={tx.id} className="transition-colors" style={{ borderBottom: '1px solid var(--color-border)' }}
+                          onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--color-card-hover)')}
+                          onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}>
                           <td className="px-10 py-6">
-                            <span className="font-bold text-[#12172D] block">
+                            <span className="font-bold block" style={{ color: 'var(--color-text-heading)' }}>
                               {getTransactionDescription(tx)}
                             </span>
                             <span className="text-xs text-gray-400">
@@ -382,10 +391,10 @@ const BillingPage: React.FC = () => {
                   {/* Mobile Card View */}
                   <div className="md:hidden flex flex-col gap-4 p-6">
                     {transactions.map((tx) => (
-                      <div key={tx.id} className="bg-gray-50 rounded-2xl p-5 flex flex-col gap-3">
+                      <div key={tx.id} className="rounded-2xl p-5 flex flex-col gap-3" style={{ backgroundColor: 'var(--color-input-solid)' }}>
                         <div className="flex justify-between items-start">
                           <div>
-                            <span className="font-bold text-[#12172D] block text-sm">
+                            <span className="font-bold block text-sm" style={{ color: 'var(--color-text-heading)' }}>
                               {getTransactionDescription(tx)}
                             </span>
                             <span className="text-[10px] text-gray-400 uppercase tracking-wide">
@@ -397,7 +406,7 @@ const BillingPage: React.FC = () => {
                           </span>
                         </div>
 
-                        <div className="flex justify-between items-center border-t border-gray-200 pt-3 mt-1">
+                        <div className="flex justify-between items-center border-t pt-3 mt-1" style={{ borderColor: 'var(--color-border)' }}>
                           <span className="text-xs text-gray-400">
                             {tx.metadata?.credits ? `${tx.metadata.credits} ${tx.metadata.creditType}` : 'Subscription'}
                           </span>

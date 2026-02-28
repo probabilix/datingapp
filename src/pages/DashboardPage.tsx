@@ -126,6 +126,10 @@ const DashboardPage: React.FC = () => {
         if (profileRes.data.persona_analysis && Object.keys(profileRes.data.persona_analysis).length > 0) {
           localStorage.removeItem('discovery_pending');
           setIsAnalyzing(false);
+        } else if (!localStorage.getItem('discovery_pending')) {
+          // New user with no analysis and no pending analysis — auto-open the discovery form
+          // Small delay so the dashboard has time to render first
+          setTimeout(() => setIsDiscoveryOpen(true), 600);
         }
       }
       if (usageRes.data) setUsage(usageRes.data);
@@ -224,7 +228,7 @@ const DashboardPage: React.FC = () => {
   };
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
+    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--color-page-bg)' }}>
       <div className="animate-pulse flex flex-col items-center gap-4">
         <div className="w-12 h-12 bg-[#E94057] rounded-full"></div>
         <p className="text-xs font-black uppercase tracking-widest opacity-20">Loading Intelligence...</p>
@@ -244,9 +248,9 @@ const DashboardPage: React.FC = () => {
 
           <section className="px-6 md:px-12 lg:px-24 mb-10">
             <div className="relative overflow-hidden rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-12 text-white shadow-2xl"
-              style={{ backgroundColor: themeData.colors.textHeading }}>
+              style={{ backgroundColor: 'var(--color-hero-bg)' }}>
 
-              <div className="absolute top-[-15%] right-[-10%] w-72 h-72 opacity-25 blur-[100px] animate-pulse"
+              <div className="absolute top-[-15%] right-[-10%] w-72 h-72 opacity-20 blur-[100px] animate-pulse"
                 style={{ backgroundColor: themeData.colors.brand }}></div>
               <div className="absolute bottom-[-15%] left-[-10%] w-64 h-64 bg-blue-600 opacity-15 blur-[100px]"></div>
 
@@ -277,8 +281,8 @@ const DashboardPage: React.FC = () => {
                 ) : (
                   <button
                     onClick={() => profile?.persona_analysis ? setShowAnalysis(!showAnalysis) : setIsDiscoveryOpen(true)}
-                    className="px-8 py-4 bg-white font-bold rounded-2xl hover:scale-105 transition-all shadow-xl flex items-center gap-3"
-                    style={{ color: themeData.colors.textHeading }}>
+                    className="px-8 py-4 rounded-2xl font-bold shadow-xl flex items-center gap-3 transition-all hover:brightness-110 active:scale-95"
+                    style={{ backgroundColor: themeData.colors.brand, color: '#FFFFFF' }}>
                     {profile?.persona_analysis ? 'View My Analysis' : 'Launch Analysis'} <Zap size={16} fill="currentColor" />
                   </button>
                 )}
@@ -352,10 +356,11 @@ const DashboardPage: React.FC = () => {
                 return (
                   <div
                     key={advisor.id}
-                    className={`group bg-white rounded-[2rem] p-5 md:p-8 shadow-sm transition-all flex flex-col items-center relative ${isLocked
+                    className={`group rounded-[2rem] p-5 md:p-8 shadow-sm transition-all flex flex-col items-center relative ${isLocked
                       ? 'cursor-pointer border-2 border-[#E94057]/20'
-                      : 'hover:shadow-md border border-gray-50'
+                      : 'hover:shadow-md'
                       }`}
+                    style={{ backgroundColor: 'var(--color-card-bg)', border: isLocked ? undefined : '1px solid var(--color-border)' }}
                     onClick={isLocked ? () => navigate('/billing') : undefined}
                   >
                     {/* Photo */}
@@ -364,7 +369,7 @@ const DashboardPage: React.FC = () => {
                         className={`w-20 h-20 md:w-24 md:h-24 rounded-[1.5rem] md:rounded-[2rem] object-cover shadow-sm transition-transform ${!isLocked ? 'group-hover:scale-105' : 'opacity-[0.85]'}`} />
                       {/* Online dot — only for unlocked */}
                       {advisor.is_online && !isLocked && (
-                        <div className="absolute bottom-0.5 right-0.5 w-4 h-4 bg-green-500 border-2 border-white rounded-full shadow-sm" />
+                        <div className="absolute bottom-0.5 right-0.5 w-4 h-4 bg-green-500 border-2 rounded-full shadow-sm" style={{ borderColor: 'var(--color-card-bg)' }} />
                       )}
                       {/* Lock badge on photo — only for locked */}
                       {isLocked && (
@@ -402,7 +407,8 @@ const DashboardPage: React.FC = () => {
                       <div className="flex gap-2 w-full mt-auto">
                         <button
                           onClick={() => handleAdvisorClick('chat')}
-                          className="flex-1 h-10 md:h-12 bg-gray-50 rounded-xl flex items-center justify-center hover:bg-black hover:text-white transition-all shadow-inner cursor-pointer">
+                          className="flex-1 h-10 md:h-12 rounded-xl flex items-center justify-center hover:bg-black hover:text-white transition-all shadow-inner cursor-pointer"
+                          style={{ backgroundColor: 'var(--color-input-solid)', color: 'var(--color-text-body)' }}>
                           <MessageSquare size={16} />
                         </button>
                         <button
@@ -436,7 +442,7 @@ const DashboardPage: React.FC = () => {
 const StatCard = ({ icon, title, value, color }: any) => {
   const isHex = color.startsWith('#');
   return (
-    <div className="w-full bg-white p-6 rounded-[2rem] border border-gray-50 shadow-sm flex items-center gap-4 group transition-all cursor-pointer">
+    <div className="w-full rounded-[2rem] border p-6 flex items-center gap-4 group transition-all cursor-pointer" style={{ backgroundColor: 'var(--color-card-bg)', borderColor: 'var(--color-border)' }}>
       <div className={`w-12 h-12 rounded-xl text-white flex items-center justify-center shadow-md transition-transform group-hover:rotate-6 ${!isHex ? color : ''}`} style={isHex ? { backgroundColor: color } : {}}>{icon}</div>
       <div>
         <p className="text-[9px] font-black uppercase opacity-60 tracking-widest mb-0.5" style={{ color: themeData.colors.textBody }}>{title}</p>

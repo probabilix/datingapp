@@ -9,7 +9,7 @@ const ForgotPasswordPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   return (
-    <div className="min-h-screen w-full flex flex-col md:flex-row bg-white">
+    <div className="min-h-screen w-full flex flex-col md:flex-row" style={{ backgroundColor: 'var(--color-page-bg)' }}>
       <Helmet><title>Reset Password | DatingAdvice.io</title></Helmet>
 
       {/* Form Side */}
@@ -18,8 +18,8 @@ const ForgotPasswordPage: React.FC = () => {
           <Link to="/login" className="text-xs font-bold opacity-30 hover:opacity-100 uppercase tracking-widest mb-10 inline-block transition-opacity">← Back to login</Link>
 
           <div className="mb-10">
-            <h1 className="text-4xl font-bold mb-2 text-[#12172D]" style={{ fontFamily: 'DM Serif Display' }}>Reset password</h1>
-            <p className="text-sm text-[#5A5E73] opacity-60">Enter your email to receive a secure reset link</p>
+            <h1 className="text-4xl font-bold mb-2" style={{ fontFamily: 'DM Serif Display', color: 'var(--color-text-heading)' }}>Reset password</h1>
+            <p className="text-sm opacity-60" style={{ color: 'var(--color-text-body)' }}>Enter your email to receive a secure reset link</p>
           </div>
 
           {!submitted ? (
@@ -66,7 +66,8 @@ const ForgotPasswordPage: React.FC = () => {
                 placeholder="Email Address"
                 required
                 disabled={isLoading}
-                className="w-full px-5 py-4 rounded-xl bg-[#F9F9F9] outline-none focus:ring-1 focus:ring-[#E94057]/20 transition-all text-[#12172D] disabled:opacity-50"
+                className="w-full px-5 py-4 rounded-xl outline-none focus:ring-1 focus:ring-[#E94057]/20 transition-all disabled:opacity-50"
+                style={{ backgroundColor: 'var(--color-input-solid)', color: 'var(--color-text-heading)', border: '1px solid var(--color-border)' }}
               />
               <button
                 type="submit"
@@ -97,13 +98,13 @@ const ForgotPasswordPage: React.FC = () => {
       </div>
 
       {/* Decorative Side */}
-      <div className="hidden md:flex flex-1 items-center justify-center p-12" style={{ background: 'linear-gradient(135deg, #FDEFF2 0%, #F7F3EE 100%)' }}>
+      <div className="hidden md:flex flex-1 items-center justify-center p-12 auth-side-panel">
         <div className="text-center max-w-sm">
           <div className="w-24 h-24 bg-white/60 backdrop-blur-md rounded-[40px] shadow-xl flex items-center justify-center mx-auto mb-10">
             <span className="text-4xl" style={{ color: themeData.colors.brand }}>♥</span>
           </div>
-          <h2 className="text-4xl font-bold mb-6 leading-tight text-[#12172D]" style={{ fontFamily: 'DM Serif Display' }}>Security First</h2>
-          <p className="text-sm text-[#5A5E73] opacity-60 leading-relaxed">We take your privacy seriously. Follow the secure link in your email to safely reset your account password.</p>
+          <h2 className="text-4xl font-bold mb-6 leading-tight" style={{ fontFamily: 'DM Serif Display', color: 'var(--color-text-heading)' }}>Security First</h2>
+          <p className="text-sm opacity-60 leading-relaxed" style={{ color: 'var(--color-text-body)' }}>We take your privacy seriously. Follow the secure link in your email to safely reset your account password.</p>
         </div>
       </div>
     </div>

@@ -75,20 +75,20 @@ const CareersPage: React.FC = () => {
                 <Loader2 className="animate-spin opacity-20" size={40} />
               </div>
             ) : jobs.length === 0 ? (
-              <div className="text-center py-20 opacity-50 bg-white rounded-[2rem] border border-gray-100">
+              <div className="text-center py-20 opacity-50 rounded-[2rem]" style={{ backgroundColor: 'var(--color-card-bg)', border: '1px solid var(--color-border)' }}>
                 <p className="text-lg font-medium">No open positions at the moment.</p>
                 <p className="text-sm">Check back soon!</p>
               </div>
             ) : (
               jobs.map(job => (
-                <div key={job.id} className="bg-white p-8 rounded-[2rem] flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-sm border border-transparent hover:border-gray-200 hover:shadow-md transition-all group">
+                <div key={job.id} className="p-8 rounded-[2rem] flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-sm transition-all group" style={{ backgroundColor: 'var(--color-card-bg)', border: '1px solid var(--color-border)' }}>
                   <div>
                     <h3 className="text-2xl font-bold mb-3" style={{ color: themeData.colors.textHeading }}>{job.title}</h3>
                     <div className="flex flex-wrap gap-4 text-sm font-medium opacity-60">
-                      <span className="flex items-center gap-1.5 bg-gray-50 px-3 py-1 rounded-lg">
+                      <span className="flex items-center gap-1.5 px-3 py-1 rounded-lg" style={{ backgroundColor: 'var(--color-input-solid)' }}>
                         <Briefcase size={14} /> {job.type}
                       </span>
-                      <span className="flex items-center gap-1.5 bg-gray-50 px-3 py-1 rounded-lg">
+                      <span className="flex items-center gap-1.5 px-3 py-1 rounded-lg" style={{ backgroundColor: 'var(--color-input-solid)' }}>
                         <MapPin size={14} /> {job.location}
                       </span>
                     </div>

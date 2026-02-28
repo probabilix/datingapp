@@ -23,7 +23,8 @@ const CreditExhaustedModal: React.FC<{ onClose: () => void; type: 'chat' | 'voic
       initial={{ scale: 0.9, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       exit={{ scale: 0.9, opacity: 0 }}
-      className="bg-white rounded-[2.5rem] p-10 max-w-sm w-full shadow-2xl relative text-center"
+      className="rounded-[2.5rem] p-10 max-w-sm w-full shadow-2xl relative text-center"
+      style={{ backgroundColor: 'var(--color-card-bg)', color: 'var(--color-text-heading)' }}
     >
       <div className="mx-auto w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mb-6 text-red-500">
         <AlertCircle size={40} />
@@ -342,8 +343,12 @@ const ConsultationPage: React.FC = () => {
                       setSearchParams({ agent: agent.id, mode });
                     }}
                     className={`w-full p-4 rounded-[2rem] flex items-center gap-4 transition-all border-2 cursor-pointer relative
-                      ${selectedAdvisor?.id === agent.id ? "bg-white border-black shadow-xl" : "bg-white/40 border-transparent"}
                       ${isLocked ? "opacity-60" : "opacity-100 hover:opacity-80"}`}
+                    style={{
+                      backgroundColor: 'var(--color-card-bg)',
+                      borderColor: selectedAdvisor?.id === agent.id ? 'var(--color-text-heading)' : 'transparent',
+                      boxShadow: selectedAdvisor?.id === agent.id ? '0 8px 24px rgba(0,0,0,0.12)' : 'none'
+                    }}
                   >
                     <div className="relative flex-shrink-0">
                       <img src={agent.image_url} className="w-12 h-12 rounded-2xl object-cover" alt="" />
@@ -364,7 +369,7 @@ const ConsultationPage: React.FC = () => {
           </aside>
         )}
 
-        <section className="flex-1 bg-white rounded-[2.5rem] md:rounded-[3.5rem] shadow-2xl border flex flex-col overflow-hidden h-full relative">
+        <section className="flex-1 rounded-[2.5rem] md:rounded-[3.5rem] shadow-2xl border flex flex-col overflow-hidden h-full relative" style={{ backgroundColor: 'var(--color-card-bg)', borderColor: 'var(--color-border)' }}>
           <header className="p-5 md:p-8 flex items-center justify-between bg-[#1A1A1A] text-white">
             <div className="flex items-center gap-4">
               {isMobile && <button onClick={() => navigate("/dashboard")} className="p-2 bg-white/10 rounded-xl"><ChevronLeft size={20} /></button>}
@@ -393,20 +398,23 @@ const ConsultationPage: React.FC = () => {
             </div>
           </header>
 
-          <div className="flex-1 overflow-y-auto p-6 md:p-12 bg-[#FBFCFE] no-scrollbar relative">
+          <div className="flex-1 overflow-y-auto p-6 md:p-12 no-scrollbar relative" style={{ backgroundColor: 'var(--color-card-bg)' }}>
             {mode === "chat" ? (
               <div className="space-y-6 max-w-4xl mx-auto">
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
-                  <div className="max-w-[85%] p-6 bg-white border border-gray-100 rounded-[2.5rem] rounded-tl-none text-sm leading-relaxed shadow-sm">
+                  <div className="max-w-[85%] p-6 rounded-[2.5rem] rounded-tl-none text-sm leading-relaxed shadow-sm" style={{ backgroundColor: 'var(--color-card-bg)', border: '1px solid var(--color-border)', color: 'var(--color-text-body)' }}>
                     Hey! I'm {selectedAdvisor?.name}. I've got your records open. What's the latest update in your dating world?
                   </div>
                 </motion.div>
                 {messages.map((m, i) => (
                   <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                    <p className={`max-w-[85%] p-6 rounded-[2.5rem] text-[15px] font-medium leading-relaxed shadow-sm ${m.role === "user" ? "bg-black text-white rounded-tr-none" : "bg-white border rounded-tl-none text-gray-800"}`}>{m.content}</p>
+                    <p className={`max-w-[85%] p-6 rounded-[2.5rem] text-[15px] font-medium leading-relaxed shadow-sm ${m.role === "user" ? "rounded-tr-none text-white" : "rounded-tl-none"}`}
+                      style={m.role === "user"
+                        ? { backgroundColor: '#E94057' }
+                        : { backgroundColor: 'var(--color-input-solid)', border: '1px solid var(--color-border)', color: 'var(--color-text-body)' }}>{m.content}</p>
                   </motion.div>
                 ))}
-                {isTyping && <div className="flex justify-start animate-pulse"><div className="bg-white px-5 py-3 rounded-full border border-gray-100 flex gap-1"><div className="w-1.5 h-1.5 bg-gray-400 rounded-full" /><div className="w-1.5 h-1.5 bg-gray-400 rounded-full" /></div></div>}
+                {isTyping && <div className="flex justify-start animate-pulse"><div className="px-5 py-3 rounded-full flex gap-1" style={{ backgroundColor: 'var(--color-card-bg)', border: '1px solid var(--color-border)' }}><div className="w-1.5 h-1.5 bg-gray-400 rounded-full" /><div className="w-1.5 h-1.5 bg-gray-400 rounded-full" /></div></div>}
                 <div ref={scrollRef} />
               </div>
             ) : (
@@ -443,10 +451,11 @@ const ConsultationPage: React.FC = () => {
           </div>
 
           {mode === "chat" && (
-            <footer className="p-6 md:p-10 bg-white">
-              <div className="max-w-4xl mx-auto flex items-center gap-3 bg-gray-50 p-2 rounded-[2.5rem] border border-gray-100 focus-within:border-black transition-all">
+            <footer className="p-6 md:p-10" style={{ backgroundColor: 'var(--color-card-bg)' }}>
+              <div className="max-w-4xl mx-auto flex items-center gap-3 p-2 rounded-[2.5rem] transition-all" style={{ backgroundColor: 'var(--color-input-solid)', border: '1px solid var(--color-border)' }}>
                 <input
                   className={`flex-1 bg-transparent px-6 py-4 outline-none text-sm font-medium`}
+                  style={{ color: 'var(--color-text-heading)', caretColor: '#E94057' }}
                   placeholder={isTyping ? "Advisor is thinking..." : `Consult with ${selectedAdvisor?.name}...`}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}

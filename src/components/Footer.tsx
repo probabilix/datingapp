@@ -80,8 +80,8 @@ const Footer: React.FC = () => {
 
   return (
     <footer
-      className="px-6 pt-16 pb-12 border-t border-gray-200/50"
-      style={{ backgroundColor: themeData.colors.bgFooter }}
+      className="px-6 pt-16 pb-12 border-t"
+      style={{ backgroundColor: themeData.colors.bgFooter, borderColor: 'var(--color-border)' }}
     >
       <div className="max-w-[1100px] mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 md:gap-8 mb-16">
@@ -93,7 +93,7 @@ const Footer: React.FC = () => {
               <span className="ml-3 text-xl font-bold" style={{ fontFamily: 'DM Serif Display', color: themeData.colors.textHeading }}>DatingAdvice</span>
             </Link>
 
-            <p className="text-[13px] font-bold mb-3 uppercase tracking-wider opacity-40">Newsletter</p>
+            <p className="text-[13px] font-bold mb-3 uppercase tracking-wider opacity-40" style={{ color: 'var(--color-text-body)' }}>Newsletter</p>
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -110,7 +110,8 @@ const Footer: React.FC = () => {
                 }}
                 disabled={status === 'success' || status === 'loading'}
                 placeholder={status === 'success' ? "Thanks for joining!" : "Your email"}
-                className={`w-full pl-4 pr-[85px] py-3.5 rounded-xl text-sm border shadow-inner bg-white/70 focus:bg-white transition-all outline-none ${status === 'invalid' ? 'border-red-300 ring-2 ring-red-100' : 'border-none'}`}
+                className={`w-full pl-4 pr-[85px] py-3.5 rounded-xl text-sm border shadow-inner transition-all outline-none ${status === 'invalid' ? 'border-red-300 ring-2 ring-red-100' : 'border-none'}`}
+                style={{ backgroundColor: 'var(--color-input-solid)', color: 'var(--color-text-heading)' }}
               />
               <button
                 type="submit"
@@ -130,7 +131,8 @@ const Footer: React.FC = () => {
                   href={social.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full bg-white flex items-center justify-center border border-black/5 shadow-sm hover:scale-110 transition-transform"
+                  className="w-10 h-10 rounded-full flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
+                  style={{ backgroundColor: 'var(--color-card-bg)', border: '1px solid var(--color-border)' }}
                 >
                   <span style={{ color: themeData.colors.brand }}>{getIcon(social.icon_key)}</span>
                 </a>
@@ -175,7 +177,7 @@ const Footer: React.FC = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-black/5 text-center">
+        <div className="pt-8 border-t text-center" style={{ borderColor: 'var(--color-border)' }}>
           <p className="text-[11px] opacity-50 uppercase tracking-[0.2em]">© 2026 DatingAdvice.io. All rights reserved.</p>
         </div>
       </div>

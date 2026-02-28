@@ -36,22 +36,22 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({
         >
             <div className="flex-grow">
                 {icon && (
-                    <div className="mb-6 w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center text-rose-500">
+                    <div className="mb-6 w-12 h-12 rounded-2xl shadow-sm flex items-center justify-center text-rose-500" style={{ backgroundColor: 'var(--color-input-solid)' }}>
                         {React.isValidElement(icon) ? React.cloneElement(icon as React.ReactElement, { size: 24 } as any) : icon}
                     </div>
                 )}
 
-                <h2 className="text-2xl font-bold mb-4 text-gray-900" style={{ fontFamily: 'DM Serif Display' }}>
+                <h2 className="text-2xl font-bold mb-4" style={{ fontFamily: 'DM Serif Display', color: 'var(--color-text-heading)' }}>
                     {title}
                 </h2>
 
-                <div className="text-gray-600 space-y-4 text-[15px] leading-relaxed mb-8">
+                <div className="space-y-4 text-[15px] leading-relaxed mb-8" style={{ color: 'var(--color-text-body)' }}>
                     {body}
                 </div>
             </div>
 
-            <div className="mt-auto pt-6 border-t border-gray-100">
-                <label className="flex items-start gap-3 cursor-pointer group p-2 -ml-2 rounded-lg hover:bg-black/5 transition-colors">
+            <div className="mt-auto pt-6" style={{ borderTop: '1px solid var(--color-border)' }}>
+                <label className="flex items-start gap-3 cursor-pointer group p-2 -ml-2 rounded-lg transition-colors" style={{ color: 'var(--color-text-body)' }}>
                     <div className="relative flex-shrink-0 mt-0.5">
                         <input
                             type="checkbox"
@@ -61,11 +61,12 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({
                         />
                         <div className={`w-5 h-5 border-2 rounded transition-all duration-200 ${isChecked
                             ? 'bg-rose-500 border-rose-500'
-                            : 'border-gray-300 bg-white group-hover:border-rose-400'}`}>
+                            : 'border-rose-300/40 group-hover:border-rose-400'}`}
+                            style={!isChecked ? { backgroundColor: 'var(--color-input-solid)' } : {}}>
                             <Check size={14} className={`text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-opacity ${isChecked ? 'opacity-100' : 'opacity-0'}`} />
                         </div>
                     </div>
-                    <span className="text-sm font-medium text-gray-700 select-none group-hover:text-gray-900">
+                    <span className="text-sm font-medium select-none" style={{ color: 'var(--color-text-heading)' }}>
                         {checkboxLabel}
                     </span>
                 </label>

@@ -19,8 +19,15 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] bg-white flex flex-col p-8 animate-in fade-in slide-in-from-right duration-300">
-      <button onClick={onClose} className="self-end text-4xl text-gray-800 mb-8">
+    <div
+      className="fixed inset-0 z-[100] flex flex-col p-8 animate-in fade-in slide-in-from-right duration-300"
+      style={{ backgroundColor: 'var(--color-mobile-menu-bg)' }}
+    >
+      <button
+        onClick={onClose}
+        className="self-end text-4xl mb-8 transition-colors"
+        style={{ color: 'var(--color-text-heading)' }}
+      >
         ×
       </button>
 
@@ -30,8 +37,8 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
             key={link.label}
             href={link.path}
             onClick={onClose}
-            className="text-3xl font-bold text-gray-900"
-            style={{ fontFamily: 'DM Serif Display' }}
+            className="text-3xl font-bold"
+            style={{ fontFamily: 'DM Serif Display', color: 'var(--color-text-heading)' }}
           >
             {link.label}
           </a>
@@ -43,7 +50,8 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
               <a
                 href="/login"
                 onClick={onClose}
-                className="text-xl font-bold text-[#12172D] py-2 text-center"
+                className="text-xl font-bold py-2 text-center"
+                style={{ color: 'var(--color-text-heading)' }}
               >
                 Sign In
               </a>

@@ -1,28 +1,25 @@
-// src/hooks/useTheme.ts
 import { useState, useEffect } from 'react';
 
-const useTheme = () => {
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    if (typeof window !== 'undefined' && localStorage.getItem('theme') === 'dark') {
-      return true;
-    }
-    return false;
+/**
+ * useTheme — manages light/dark mode.
+ * Toggles the 'dark' class on <html>, persists to localStorage.
+ */
+export const useTheme = () => {
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    return localStorage.getItem('theme') === 'dark';
   });
 
   useEffect(() => {
-    const root = document.documentElement;
-    if (isDarkMode) {
-      root.classList.add('dark'); //
-      localStorage.setItem('theme', 'dark'); //
+    const html = document.documentElement;
+    if (isDark) {
+      html.classList.add('dark');
     } else {
-      root.classList.remove('dark'); //
-      localStorage.setItem('theme', 'light'); //
+      html.classList.remove('dark');
     }
-  }, [isDarkMode]);
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  }, [isDark]);
 
-  const toggleTheme = () => setIsDarkMode(prev => !prev); //
+  const toggleTheme = () => setIsDark((prev) => !prev);
 
-  return { isDarkMode, toggleTheme };
+  return { isDark, toggleTheme };
 };
-
-export default useTheme;

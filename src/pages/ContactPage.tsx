@@ -173,7 +173,7 @@ const ContactPage: React.FC = () => {
   // Loading state for initial data fetch
   if (!contactInfo) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--color-bg-soft)' }}>
         <Loader2 className="animate-spin text-gray-400" size={32} />
       </div>
     );
@@ -207,12 +207,12 @@ const ContactPage: React.FC = () => {
               </p>
 
               <div className="space-y-6 opacity-80 mt-12">
-                <div className="p-6 bg-white rounded-2xl shadow-sm border border-black/5">
+                <div className="p-6 rounded-2xl shadow-sm" style={{ backgroundColor: 'var(--color-card-bg)', border: '1px solid var(--color-border)' }}>
                   <p className="text-sm uppercase font-bold opacity-50 mb-1">Office</p>
                   <p className="font-medium">{contactInfo.office_address}</p>
                 </div>
                 {socialLinks.length > 0 && (
-                  <div className="p-6 bg-white rounded-2xl shadow-sm border border-black/5">
+                  <div className="p-6 rounded-2xl shadow-sm" style={{ backgroundColor: 'var(--color-card-bg)', border: '1px solid var(--color-border)' }}>
                     <p className="text-sm uppercase font-bold opacity-50 mb-4">Connect With Us</p>
                     <div className="space-y-4">
                       {socialLinks.map((link) => (
@@ -223,7 +223,7 @@ const ContactPage: React.FC = () => {
                           rel="noopener noreferrer"
                           className="flex items-center gap-3 font-medium hover:opacity-70 transition-opacity"
                         >
-                          <span className="p-2 bg-gray-50 rounded-full">
+                          <span className="p-2 rounded-full" style={{ backgroundColor: 'var(--color-input-solid)' }}>
                             {getIcon(link.icon_key)}
                           </span>
                           <span>{link.handle || link.platform}</span>
@@ -235,9 +235,9 @@ const ContactPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-xl border border-gray-100 relative overflow-hidden">
+            <div className="p-8 md:p-10 rounded-[2.5rem] shadow-xl relative overflow-hidden" style={{ backgroundColor: 'var(--color-card-bg)', border: '1px solid var(--color-border)' }}>
               {status === 'success' ? (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-white z-10 p-8 text-center animate-in fade-in duration-300">
+                <div className="absolute inset-0 flex flex-col items-center justify-center z-10 p-8 text-center animate-in fade-in duration-300" style={{ backgroundColor: 'var(--color-card-bg)' }}>
                   <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6 text-green-600">
                     <CheckCircle size={40} />
                   </div>
@@ -267,7 +267,8 @@ const ContactPage: React.FC = () => {
                     value={formData.name}
                     onChange={handleNameChange}
                     placeholder="John Doe"
-                    className="w-full p-4 rounded-xl bg-gray-50 outline-none focus:ring-2 focus:ring-pink-100 focus:bg-white transition-all border border-transparent focus:border-pink-100"
+                    className="w-full p-4 rounded-xl outline-none focus:ring-2 focus:ring-pink-100 transition-all"
+                    style={{ backgroundColor: 'var(--color-input-solid)', color: 'var(--color-text-heading)', border: '1px solid var(--color-border)' }}
                   />
                 </div>
 
@@ -279,7 +280,8 @@ const ContactPage: React.FC = () => {
                     value={formData.email}
                     onChange={handleEmailChange}
                     placeholder="john@example.com"
-                    className="w-full p-4 rounded-xl bg-gray-50 outline-none focus:ring-2 focus:ring-pink-100 focus:bg-white transition-all border border-transparent focus:border-pink-100"
+                    className="w-full p-4 rounded-xl outline-none focus:ring-2 focus:ring-pink-100 transition-all"
+                    style={{ backgroundColor: 'var(--color-input-solid)', color: 'var(--color-text-heading)', border: '1px solid var(--color-border)' }}
                   />
                 </div>
 
@@ -290,7 +292,8 @@ const ContactPage: React.FC = () => {
                     value={formData.message}
                     onChange={handleMessageChange}
                     placeholder="How can we help you today?"
-                    className="w-full p-4 rounded-xl bg-gray-50 h-40 outline-none focus:ring-2 focus:ring-pink-100 focus:bg-white transition-all border border-transparent focus:border-pink-100 resize-none"
+                    className="w-full p-4 rounded-xl h-40 outline-none focus:ring-2 focus:ring-pink-100 transition-all resize-none"
+                    style={{ backgroundColor: 'var(--color-input-solid)', color: 'var(--color-text-heading)', border: '1px solid var(--color-border)' }}
                   />
                 </div>
 

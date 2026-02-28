@@ -26,7 +26,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }) => {
                     <p>
                         Dating Advice.io uses advanced <strong>Artificial Intelligence</strong> to generate dating and relationship advice.
                     </p>
-                    <div className="bg-amber-50 rounded-lg p-3 text-sm text-amber-800 border border-amber-100 my-2">
+                    <div className="rounded-lg p-3 text-sm border my-2" style={{ backgroundColor: 'rgba(251,191,36,0.12)', color: 'var(--color-text-body)', borderColor: 'rgba(251,191,36,0.25)' }}>
                         <strong>Disclaimer:</strong> This service is for informational and entertainment purposes only.
                     </div>
                     <p>
@@ -68,7 +68,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }) => {
                         <li>Erotic roleplay or explicit sexual acts</li>
                         <li>Any sexual content involving minors (will be reported)</li>
                     </ul>
-                    <p className="text-xs text-gray-400">Violations may result in immediate account termination.</p>
+                    <p className="text-xs mt-4" style={{ color: 'var(--color-text-muted)' }}>Violations may result in immediate account termination.</p>
                 </>
             ),
             checkboxLabel: 'I agree not to submit explicit sexual content or attempt to bypass content filters.',
@@ -123,7 +123,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }) => {
             body: (
                 <>
                     <p>By using the app, you agree to our Terms of Service.</p>
-                    <div className="bg-gray-50 border border-gray-200 p-3 rounded-lg mt-3 text-sm">
+                    <div className="p-3 rounded-lg mt-3 text-sm" style={{ backgroundColor: 'var(--color-input-solid)', border: '1px solid var(--color-border)', color: 'var(--color-text-body)' }}>
                         <p><strong>Arbitration Agreement:</strong> Most disputes will be resolved by binding arbitration, not in court. You waive the right to class actions.</p>
                     </div>
                     <p className="text-xs text-gray-400 mt-2">
