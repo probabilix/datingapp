@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { supabase } from './lib/supabaseClient';
+import { PageLoader } from './components/PageLoader';
 
 // Component Imports
 import Header from './components/Header';
@@ -41,135 +42,158 @@ import { themeData } from './data/themeData';
 
 // Helper: Protected Route Guard
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const [session, setSession] = useState<any>(null);
-  const [isOnboarded, setIsOnboarded] = useState<boolean>(false);
-  const [loading, setLoading] = useState(true);
+    const [session, setSession] = useState<any>(null);
+    const [isOnboarded, setIsOnboarded] = useState<boolean>(false);
+    const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const checkAuthAndOnboarding = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
+    useEffect(() => {
+        const checkAuthAndOnboarding = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            setSession(session);
 
-      if (session) {
-        // Check profile for onboarding status
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('onboarding_completed_at')
-          .eq('id', session.user.id)
-          .single();
+            if (session) {
+                // Check profile for onboarding status
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('onboarding_completed_at')
+                    .eq('id', session.user.id)
+                    .single();
 
-        // If profile exists and has a timestamp, they are onboarded
-        if (profile?.onboarding_completed_at) {
-          setIsOnboarded(true);
-        }
-      }
-      setLoading(false);
-    };
+                // If profile exists and has a timestamp, they are onboarded
+                if (profile?.onboarding_completed_at) {
+                    setIsOnboarded(true);
+                }
+            }
+            setLoading(false);
+        };
 
-    checkAuthAndOnboarding();
-  }, []);
+        checkAuthAndOnboarding();
+    }, []);
 
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--color-page-bg)' }}>
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500"></div>
-    </div>
-  );
+    if (loading) return <PageLoader text="Securing your session" />;
 
-  if (!session) return <Navigate to="/login" replace />;
+    if (!session) return <Navigate to="/login" replace />;
 
-  // Enforce onboarding
-  if (!isOnboarded) return <Navigate to="/onboarding" replace />;
+    // Enforce onboarding
+    if (!isOnboarded) return <Navigate to="/onboarding" replace />;
 
-  return <>{children}</>;
+    return <>{children}</>;
 };
 
 const PageScrollReset = () => {
-  const { pathname } = useLocation();
-  useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-  }, [pathname]);
-  return null;
+    const { pathname } = useLocation();
+    useEffect(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    }, [pathname]);
+    return null;
 };
 
 const App: React.FC = () => {
-  const [showButton, setShowButton] = useState(false);
+    const [showButton, setShowButton] = useState(false);
 
-  useEffect(() => {
-    const handleScrollTransition = () => {
-      if (window.scrollY > 400) setShowButton(true);
-      else setShowButton(false);
-    };
-    window.addEventListener('scroll', handleScrollTransition);
+    useEffect(() => {
+        const handleScrollTransition = () => {
+            if (window.scrollY > 400) setShowButton(true);
+            else setShowButton(false);
+        };
+        window.addEventListener('scroll', handleScrollTransition);
 
-    // Removed conflicting hash clearing to allow Supabase to handle the session extraction
+        async function fetchFavicon() {
+            try {
+                const { data } = await supabase
+                    .from('system_settings')
+                    .select('key_value')
+                    .eq('key_name', 'FAVICON_URL')
+                    .single();
 
-    return () => window.removeEventListener('scroll', handleScrollTransition);
-  }, []);
+                if (data?.key_value) {
+                    const link: HTMLLinkElement = document.querySelector("link[rel~='icon']") || document.createElement('link');
+                    link.type = 'image/png';
+                    link.rel = 'icon';
+                    link.href = data.key_value;
+                    document.head.appendChild(link);
+                } else {
+                    const link: HTMLLinkElement = document.querySelector("link[rel~='icon']") || document.createElement('link');
+                    link.type = 'image/png';
+                    link.rel = 'icon';
+                    link.href = '/Favicon.png';
+                    document.head.appendChild(link);
+                }
+            } catch (err) {
+                console.error("Failed to load external favicon", err);
+            }
+        }
+        fetchFavicon();
 
-  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Removed conflicting hash clearing to allow Supabase to handle the session extraction
 
-  return (
-    <HelmetProvider>
-      <Router>
-        <PageScrollReset />
-        <div className="min-h-screen antialiased overflow-x-hidden relative" style={{ backgroundColor: themeData.colors.bgSoft }}>
-          <Routes>
-            <Route path="/" element={
-              <>
-                <Header />
-                <main className="flex flex-col">
-                  <HeroSection />
-                  <AdvisorsSection />
-                  <ProcessSection />
-                  <PricingSection />
-                  <TestimonialsSection />
-                  <FAQSection />
-                </main>
-                <Footer />
-              </>
-            } />
+        return () => window.removeEventListener('scroll', handleScrollTransition);
+    }, []);
 
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<SignupPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
+    const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
-            <Route path="/onboarding" element={<OnboardingPage />} />
+    return (
+        <HelmetProvider>
+            <Router>
+                <PageScrollReset />
+                <div className="min-h-screen antialiased overflow-x-hidden relative" style={{ backgroundColor: themeData.colors.bgSoft }}>
+                    <Routes>
+                        <Route path="/" element={
+                            <>
+                                <Header />
+                                <main className="flex flex-col">
+                                    <HeroSection />
+                                    <AdvisorsSection />
+                                    <ProcessSection />
+                                    <PricingSection />
+                                    <TestimonialsSection />
+                                    <FAQSection />
+                                </main>
+                                <Footer />
+                            </>
+                        } />
 
-            <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-            <Route path="/billing" element={<ProtectedRoute><BillingPage /></ProtectedRoute>} />
-            <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
-            <Route path="/consultation" element={<ProtectedRoute><ConsultationPage /></ProtectedRoute>} />
+                        <Route path="/login" element={<LoginPage />} />
+                        <Route path="/signup" element={<SignupPage />} />
+                        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                        <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/blogs" element={<BlogsPage />} />
-            <Route path="/blog/:slug" element={<BlogPostPage />} />
-            <Route path="/success-stories" element={<SuccessStoriesPage />} />
-            <Route path="/careers" element={<CareersPage />} />
-            <Route path="/contact" element={<ContactPage />} />
-            <Route path="/cookies" element={<CookiesPage />} />
-            <Route path="/privacy" element={<PrivacyPage />} />
+                        <Route path="/onboarding" element={<OnboardingPage />} />
 
-            <Route path="/terms" element={<TermsPage />} />
-            <Route path="/refund-policy" element={<RefundPolicyPage />} />
-            <Route path="/community-guidelines" element={<CommunityGuidelinesPage />} />
-            <Route path="/arbitration-opt-out" element={<ArbitrationOptOutPage />} />
-          </Routes>
+                        <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+                        <Route path="/billing" element={<ProtectedRoute><BillingPage /></ProtectedRoute>} />
+                        <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
+                        <Route path="/consultation" element={<ProtectedRoute><ConsultationPage /></ProtectedRoute>} />
 
-          {showButton && (
-            <button
-              onClick={scrollToTop}
-              className="fixed bottom-8 right-8 z-[60] w-12 h-12 rounded-full shadow-2xl flex items-center justify-center text-white transition-transform hover:scale-110"
-              style={{ backgroundColor: themeData.colors.brand }}
-              aria-label="Scroll to top"
-            >
-              <span className="text-xl">↑</span>
-            </button>
-          )}
-        </div>
-      </Router>
-    </HelmetProvider>
-  );
+                        <Route path="/about" element={<AboutPage />} />
+                        <Route path="/blogs" element={<BlogsPage />} />
+                        <Route path="/blog/:slug" element={<BlogPostPage />} />
+                        <Route path="/success-stories" element={<SuccessStoriesPage />} />
+                        <Route path="/careers" element={<CareersPage />} />
+                        <Route path="/contact" element={<ContactPage />} />
+                        <Route path="/cookies" element={<CookiesPage />} />
+                        <Route path="/privacy" element={<PrivacyPage />} />
+
+                        <Route path="/terms" element={<TermsPage />} />
+                        <Route path="/refund-policy" element={<RefundPolicyPage />} />
+                        <Route path="/community-guidelines" element={<CommunityGuidelinesPage />} />
+                        <Route path="/arbitration-opt-out" element={<ArbitrationOptOutPage />} />
+                    </Routes>
+
+                    {showButton && (
+                        <button
+                            onClick={scrollToTop}
+                            className="fixed bottom-8 right-8 z-[60] w-12 h-12 rounded-full shadow-2xl flex items-center justify-center text-white transition-transform hover:scale-110"
+                            style={{ backgroundColor: themeData.colors.brand }}
+                            aria-label="Scroll to top"
+                        >
+                            <span className="text-xl">↑</span>
+                        </button>
+                    )}
+                </div>
+            </Router>
+        </HelmetProvider>
+    );
 };
 
 export default App;

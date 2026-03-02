@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { themeData } from '../data/themeData';
 import { supabase } from '../lib/supabaseClient';
+import { Logo } from '../components/Logo';
+import { PageLoader } from '../components/PageLoader';
 
 const ResetPasswordPage: React.FC = () => {
   const navigate = useNavigate();
@@ -130,12 +132,7 @@ const ResetPasswordPage: React.FC = () => {
 
     // If there is a hash but no error, we are likely processing the token. Show spinner.
     if (hasHash) {
-      return (
-        <div className="min-h-screen flex items-center justify-center flex-col gap-4">
-          <div className="w-10 h-10 border-4 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-gray-500 font-medium">Verifying link...</p>
-        </div>
-      );
+      return <PageLoader text="Verifying link..." />;
     }
 
     // If no hash and no session, then the user just navigated here directly.
@@ -156,8 +153,8 @@ const ResetPasswordPage: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center p-6" style={{ backgroundColor: 'var(--color-page-bg)' }}>
       <Helmet><title>Set New Password | DatingAdvice.io</title></Helmet>
       <div className="w-full max-w-md text-center">
-        <div className="w-16 h-16 bg-[#FDEFF2] rounded-2xl flex items-center justify-center mx-auto mb-8">
-          <span className="text-2xl" style={{ color: brandColor }}>♥</span>
+        <div className="w-20 h-20 bg-[#FDEFF2] dark:bg-white/5 backdrop-blur-xl rounded-3xl shadow-sm dark:shadow-none flex items-center justify-center mx-auto mb-8 border border-transparent dark:border-white/10 transition-all">
+          <Logo className="h-12 w-12 object-contain drop-shadow-sm dark:drop-shadow-[0_0_15px_rgba(255,255,255,0.15)] transition-all" />
         </div>
 
         {success ? (

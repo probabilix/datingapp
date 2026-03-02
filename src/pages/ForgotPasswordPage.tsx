@@ -3,6 +3,7 @@ import { API_BASE_URL } from '../config/api';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { themeData } from '../data/themeData';
+import { Logo } from '../components/Logo';
 
 const ForgotPasswordPage: React.FC = () => {
   const [submitted, setSubmitted] = useState(false);
@@ -100,8 +101,8 @@ const ForgotPasswordPage: React.FC = () => {
       {/* Decorative Side */}
       <div className="hidden md:flex flex-1 items-center justify-center p-12 auth-side-panel">
         <div className="text-center max-w-sm">
-          <div className="w-24 h-24 bg-white/60 backdrop-blur-md rounded-[40px] shadow-xl flex items-center justify-center mx-auto mb-10">
-            <span className="text-4xl" style={{ color: themeData.colors.brand }}>♥</span>
+          <div className="w-24 h-24 bg-white/60 dark:bg-white/5 backdrop-blur-md rounded-[40px] shadow-xl dark:shadow-none flex items-center justify-center mx-auto mb-10 border border-transparent dark:border-white/10 transition-all">
+            <Logo className="h-14 w-14 object-contain drop-shadow-sm dark:drop-shadow-[0_0_15px_rgba(255,255,255,0.15)] transition-all" />
           </div>
           <h2 className="text-4xl font-bold mb-6 leading-tight" style={{ fontFamily: 'DM Serif Display', color: 'var(--color-text-heading)' }}>Security First</h2>
           <p className="text-sm opacity-60 leading-relaxed" style={{ color: 'var(--color-text-body)' }}>We take your privacy seriously. Follow the secure link in your email to safely reset your account password.</p>

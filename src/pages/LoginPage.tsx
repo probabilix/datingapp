@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { themeData } from '../data/themeData';
 import { supabase } from '../lib/supabaseClient'; // Import the client
+import { Logo } from '../components/Logo';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -118,8 +119,8 @@ const LoginPage: React.FC = () => {
 
       <div className="hidden md:flex flex-1 items-center justify-center p-12 order-last shadow-2xl auth-side-panel">
         <div className="text-center max-w-sm">
-          <div className="w-24 h-24 bg-white/40 backdrop-blur-xl rounded-[40px] shadow-2xl flex items-center justify-center mx-auto mb-10 border border-white/50">
-            <span className="text-5xl" style={{ color: brandColor }}>♥</span>
+          <div className="w-24 h-24 bg-white/40 dark:bg-white/5 backdrop-blur-xl rounded-[40px] shadow-2xl dark:shadow-none flex items-center justify-center mx-auto mb-10 border border-white/50 dark:border-white/10 transition-all">
+            <Logo className="h-14 w-14 object-contain drop-shadow-sm dark:drop-shadow-[0_0_15px_rgba(255,255,255,0.15)] transition-all" />
           </div>
           <h2 className="text-5xl font-bold mb-6 leading-tight" style={{ fontFamily: 'DM Serif Display', color: navyColor }}>Your Journey to Love Continues</h2>
           <p className="text-md font-medium opacity-60 leading-relaxed" style={{ color: navyColor }}>Connect with your AI advisors and get personalized guidance for your relationship goals.</p>
