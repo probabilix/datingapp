@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Sparkles, ChevronRight, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
+import { API_BASE_URL } from '../config/api';
 
 interface DiscoveryFormProps {
     isOpen: boolean;
@@ -37,12 +38,20 @@ const DiscoveryForm: React.FC<DiscoveryFormProps> = ({ isOpen, onClose, userId, 
     const currentQuestion = questions.find(q => q.step_number === currentStep);
     const totalSteps = questions.length;
 
+    const [, setSelectedOption] = useState<string | null>(null);
+
     const handleOptionClick = (option: string) => {
         const category = currentQuestion?.category;
+        setSelectedOption(option);
         setAnswers({ ...answers, [category]: option });
-        if (currentStep < totalSteps) {
-            setCurrentStep(prev => prev + 1);
-        }
+
+        // Add a slight delay so the user sees their selection before the step changes
+        setTimeout(() => {
+            if (currentStep < totalSteps) {
+                setCurrentStep(prev => prev + 1);
+                setSelectedOption(null); // Reset for next question
+            }
+        }, 400);
     };
 
     const handleSubmit = async () => {
@@ -53,19 +62,7 @@ const DiscoveryForm: React.FC<DiscoveryFormProps> = ({ isOpen, onClose, userId, 
         setIsSubmitting(true);
 
         try {
-            const { data: setting, error: dbError } = await supabase
-                .from('system_settings')
-                .select('key_value')
-                .eq('key_name', 'N8N_DISCOVERY_WEBHOOK')
-                .maybeSingle();
-
-            if (dbError || !setting?.key_value) {
-                console.error("Failed to find Webhook in DB:", dbError?.message || "Key Missing");
-                alert("Configuration Error: Please contact support.");
-                return;
-            }
-
-            const response = await fetch(setting.key_value, {
+            const response = await fetch(`${API_BASE_URL}/api/forms/discovery`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -96,21 +93,23 @@ const DiscoveryForm: React.FC<DiscoveryFormProps> = ({ isOpen, onClose, userId, 
     if (!isOpen || loading) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
-            <div className="bg-white w-full max-w-lg rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative">
-                <button onClick={onClose} className="absolute top-6 right-6 p-2 text-gray-300 hover:text-black">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <div className="w-full max-w-lg rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative border"
+                style={{ backgroundColor: 'var(--color-card-bg)', borderColor: 'var(--color-border)', color: 'var(--color-text-heading)' }}>
+                <button onClick={onClose} className="absolute top-6 right-6 p-2 opacity-30 hover:opacity-100 transition-opacity">
                     <X size={24} />
                 </button>
 
                 <div className="flex gap-2 mb-10">
                     {questions.map(q => (
-                        <div key={q.id} className={`h-1.5 flex-1 rounded-full ${currentStep >= q.step_number ? 'bg-[#E94057]' : 'bg-gray-100'}`} />
+                        <div key={q.id} className={`h-1.5 flex-1 rounded-full ${currentStep >= q.step_number ? 'bg-[#E94057]' : 'opacity-10'}`}
+                            style={{ backgroundColor: currentStep >= q.step_number ? undefined : 'var(--color-text-body)' }} />
                     ))}
                 </div>
 
                 <div className="space-y-2 mb-8">
                     <span className="text-[10px] font-black uppercase text-[#E94057]">Step {currentStep} of {totalSteps}</span>
-                    <h2 className="text-3xl font-bold leading-tight" style={{ fontFamily: 'DM Serif Display' }}>
+                    <h2 className="text-3xl font-bold leading-tight" style={{ fontFamily: 'DM Serif Display', color: 'var(--color-text-heading)' }}>
                         {currentQuestion?.question_text}
                     </h2>
                 </div>
@@ -121,20 +120,25 @@ const DiscoveryForm: React.FC<DiscoveryFormProps> = ({ isOpen, onClose, userId, 
                             key={opt}
                             onClick={() => handleOptionClick(opt)}
                             className={`w-full p-5 text-left rounded-2xl border-2 transition-all font-bold text-sm flex justify-between items-center group
-                ${answers[currentQuestion.category] === opt ? 'border-black bg-gray-50' : 'border-gray-50 hover:border-gray-200'}`}
+                                ${answers[currentQuestion.category] === opt ? 'border-[#E94057] shadow-lg' : 'border-transparent'}`}
+                            style={{
+                                backgroundColor: 'var(--color-input-solid)',
+                                color: 'var(--color-text-body)'
+                            }}
                         >
-                            {opt} <ChevronRight size={18} className="opacity-0 group-hover:opacity-100 transition-all" />
+                            {opt} <ChevronRight size={18} className="opacity-0 group-hover:opacity-100 transition-all text-[#E94057]" />
                         </button>
                     ))}
                 </div>
 
                 <div className="mt-12 flex items-center justify-between">
-                    <button onClick={onClose} className="text-xs font-black uppercase opacity-30 hover:opacity-100">Skip</button>
+                    <button onClick={onClose} className="text-xs font-black uppercase opacity-30 hover:opacity-100" style={{ color: 'var(--color-text-body)' }}>Skip</button>
                     {currentStep === totalSteps && answers[currentQuestion?.category] && (
                         <button
                             onClick={handleSubmit}
                             disabled={isSubmitting}
-                            className="px-10 py-5 bg-black text-white rounded-[2rem] font-bold flex items-center gap-3 shadow-xl disabled:opacity-50"
+                            className="px-10 py-5 text-white rounded-[2rem] font-bold flex items-center gap-3 shadow-xl disabled:opacity-50 hover:brightness-110 transition-all"
+                            style={{ backgroundColor: '#E94057' }}
                         >
                             {isSubmitting ? <Loader2 className="animate-spin" /> : <Sparkles size={20} />}
                             Analyze Profile

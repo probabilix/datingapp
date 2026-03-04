@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import { themeData } from "../data/themeData";
+import { API_BASE_URL } from "../config/api";
 import Vapi from "@vapi-ai/web";
 import {
   MessageSquare, Phone, ChevronLeft, Sparkles,
@@ -12,40 +13,57 @@ import Header from "../components/Header";
 import { motion, AnimatePresence } from "framer-motion";
 
 // Professional Credit Modal
-const CreditExhaustedModal: React.FC<{ onClose: () => void; type: 'chat' | 'voice' }> = ({ onClose, type }) => (
+const CreditExhaustedModal: React.FC<{ onClose: () => void; type: 'chat' | 'voice'; navigate: (path: string) => void }> = ({ onClose, type, navigate }) => (
   <motion.div
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
-    className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+    className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-4"
   >
     <motion.div
-      initial={{ scale: 0.9, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      exit={{ scale: 0.9, opacity: 0 }}
-      className="rounded-[2.5rem] p-10 max-w-sm w-full shadow-2xl relative text-center"
-      style={{ backgroundColor: 'var(--color-card-bg)', color: 'var(--color-text-heading)' }}
+      initial={{ scale: 0.95, opacity: 0, y: 20 }}
+      animate={{ scale: 1, opacity: 1, y: 0 }}
+      exit={{ scale: 0.95, opacity: 0, y: 20 }}
+      className="rounded-[3rem] p-10 md:p-12 max-w-sm w-full shadow-[0_32px_128px_-12px_rgba(0,0,0,0.5)] relative text-center border overflow-hidden"
+      style={{
+        backgroundColor: 'var(--color-card-bg)',
+        color: 'var(--color-text-heading)',
+        borderColor: 'var(--color-border)'
+      }}
     >
-      <div className="mx-auto w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mb-6 text-red-500">
-        <AlertCircle size={40} />
+      {/* Subtle atmospheric glow inside the modal */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1 bg-gradient-to-r from-transparent via-[#E94057] to-transparent opacity-50" />
+
+      <div className="mx-auto w-24 h-24 rounded-[2.5rem] flex items-center justify-center mb-8 text-[#E94057] transition-transform hover:scale-105"
+        style={{ backgroundColor: 'rgba(233,64,87,0.08)', border: '1px solid rgba(233,64,87,0.15)' }}>
+        <AlertCircle size={48} strokeWidth={1.5} />
       </div>
-      <h3 className="text-2xl font-bold text-gray-900 mb-3">
-        {type === 'chat' ? 'Message Limit Reached' : 'Talk Time Over'}
+
+      <h3 className="text-3xl font-bold mb-4 tracking-tight" style={{ color: 'var(--color-text-heading)', fontFamily: 'DM Serif Display' }}>
+        {type === 'chat' ? 'Message Limit' : 'Talk Time Over'}
       </h3>
-      <p className="text-gray-500 mb-8 leading-relaxed text-sm">
+
+      <p className="mb-10 leading-relaxed text-[15px] opacity-70" style={{ color: 'var(--color-text-body)' }}>
         {type === 'chat'
-          ? "You've used all your available messages. Please top up your credits to continue chatting."
-          : "Your consultation minutes have run out. Please top up your credits to continue this session."}
+          ? "You've shared some great messages. To keep the conversation going with your advisor, please top up your credits."
+          : "Your session time has concluded. To continue speaking with your advisor, please top up your credits."}
       </p>
-      <button
-        onClick={() => window.location.href = '/billing'}
-        className="w-full py-4 bg-[#E94057] text-white rounded-2xl font-bold shadow-lg shadow-red-200 hover:brightness-110 transition-all mb-4"
-      >
-        Top Up Now
-      </button>
-      <button onClick={onClose} className="text-gray-400 text-xs font-black uppercase tracking-widest hover:text-gray-600">
-        Close & End Session
-      </button>
+
+      <div className="space-y-4">
+        <button
+          onClick={() => navigate('/billing')}
+          className="w-full py-4.5 bg-[#E94057] text-white rounded-2xl font-bold shadow-xl hover:brightness-110 active:scale-[0.98] transition-all"
+        >
+          Top Up Credits
+        </button>
+
+        <button
+          onClick={onClose}
+          className="w-full py-3 text-[11px] font-black uppercase tracking-[0.2em] opacity-40 hover:opacity-100 transition-opacity"
+        >
+          Close & End Session
+        </button>
+      </div>
     </motion.div>
   </motion.div>
 );
@@ -59,7 +77,6 @@ const ConsultationPage: React.FC = () => {
   const [mode, setMode] = useState<"chat" | "voice">(searchParams.get("mode") as any || "chat");
   const [loading, setLoading] = useState(true);
 
-  const [n8nConfig, setN8nConfig] = useState<{ apiKey: string } | null>(null);
   const [usage, setUsage] = useState<any>(null);
   const [showBillingModal, setShowBillingModal] = useState(false);
   const [modalType, setModalType] = useState<'chat' | 'voice'>('voice');
@@ -93,9 +110,8 @@ const ConsultationPage: React.FC = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return navigate('/login');
 
-      const [advisorsRes, n8nKeyRes, vapiKeyRes, usageRes] = await Promise.all([
+      const [advisorsRes, vapiKeyRes, usageRes] = await Promise.all([
         supabase.from("advisors").select("*").order("id"),
-        supabase.from("system_settings").select("*").eq("key_name", "N8N_API_KEY").single(),
         supabase.from("system_settings").select("*").eq("key_name", "VAPI_PUBLIC_KEY").single(),
         supabase.from("user_usage").select("*").eq("user_id", session.user.id).single()
       ]);
@@ -104,7 +120,6 @@ const ConsultationPage: React.FC = () => {
 
       setAdvisors(advisorsRes.data || []);
       setUsage(usageRes.data || null);
-      if (n8nKeyRes.data) setN8nConfig({ apiKey: n8nKeyRes.data.key_value });
 
       if (vapiKeyRes.data?.key_value && !vapiRef.current) {
         vapiRef.current = new Vapi(vapiKeyRes.data.key_value);
@@ -231,6 +246,8 @@ const ConsultationPage: React.FC = () => {
     activeAdvisorId.current = selectedAdvisor?.id || null;
     setIsTyping(false); // Reset typing indicator when switching agents
 
+    let channel: any = null;
+
     const fetchChatHistory = async () => {
       if (!selectedAdvisor) return;
 
@@ -250,8 +267,40 @@ const ConsultationPage: React.FC = () => {
       if (activeAdvisorId.current === selectedAdvisor.id) {
         setMessages(data || []);
       }
+
+      // --- REALTIME SUBSCRIPTION FOR NEW MESSAGES ---
+      channel = supabase
+        .channel(`chat_${selectedAdvisor.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'chat_history',
+            filter: `user_id=eq.${session.user.id}`
+          },
+          (payload) => {
+            const newMsg = payload.new;
+            // Only append if it's an AI message from the current advisor
+            if (newMsg.advisor_id === activeAdvisorId.current && (newMsg.role === 'ai' || newMsg.role === 'assistant')) {
+              setMessages((prev) => [...prev, { role: 'ai', content: newMsg.content }]);
+              setIsTyping(false);
+
+              // Refresh usage natively
+              supabase.from("user_usage").select("*").eq("user_id", session.user.id).single()
+                .then(({ data: updatedUsage }) => {
+                  if (updatedUsage) setUsage(updatedUsage);
+                });
+            }
+          }
+        )
+        .subscribe();
     };
     fetchChatHistory();
+
+    return () => {
+      if (channel) supabase.removeChannel(channel);
+    };
   }, [selectedAdvisor]);
 
   // SCROLL LOGIC - Updated with 'mode' to fix Voice-to-Chat scroll
@@ -282,26 +331,26 @@ const ConsultationPage: React.FC = () => {
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const res = await fetch(selectedAdvisor.n8n_webhook_path, {
+
+      // FIRE AND FORGET - Do not await the response JSON
+      // We will let the Supabase Realtime listener update the UI when N8N finishes!
+      fetch(`${API_BASE_URL}/api/chat`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-N8N-API-KEY": n8nConfig?.apiKey || "" },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: text,
           agentId: selectedAdvisor?.id,
           userId: session?.user?.id,
           advisorName: selectedAdvisor?.name
         }),
+      }).catch(err => {
+        console.error("Chat trigger failed:", err);
+        if (activeAdvisorId.current === currentAgentId) {
+          setMessages((prev) => [...prev, { role: "ai", content: "⚠️ Connection error." }]);
+          setIsTyping(false);
+        }
       });
-      const aiResponse = await res.json();
 
-      // CRITICAL FIX: Only update UI if user is still on the same agent
-      if (activeAdvisorId.current === currentAgentId) {
-        setMessages((prev) => [...prev, { role: "ai", content: aiResponse?.output || "..." }]);
-        setIsTyping(false);
-      }
-
-      const { data: updatedUsage } = await supabase.from("user_usage").select("*").eq("user_id", session?.user?.id).single();
-      setUsage(updatedUsage);
     } catch (err) {
       if (activeAdvisorId.current === currentAgentId) {
         setMessages((prev) => [...prev, { role: "ai", content: "⚠️ Connection error." }]);
@@ -322,7 +371,7 @@ const ConsultationPage: React.FC = () => {
     <div className="h-screen flex flex-col overflow-hidden" style={{ backgroundColor: themeData.colors.bgSoft }}>
       <Header />
       <AnimatePresence>
-        {showBillingModal && <CreditExhaustedModal type={modalType} onClose={() => setShowBillingModal(false)} />}
+        {showBillingModal && <CreditExhaustedModal type={modalType} navigate={navigate} onClose={() => setShowBillingModal(false)} />}
       </AnimatePresence>
 
       <main className={`flex-grow pt-20 md:pt-28 pb-4 px-4 md:px-8 max-w-[1600px] mx-auto flex gap-6 w-full h-full relative ${isMobile ? 'flex-col' : 'flex-row'}`}>
@@ -371,16 +420,16 @@ const ConsultationPage: React.FC = () => {
 
         <section className="flex-1 rounded-[2.5rem] md:rounded-[3.5rem] shadow-2xl border flex flex-col overflow-hidden h-full relative" style={{ backgroundColor: 'var(--color-card-bg)', borderColor: 'var(--color-border)' }}>
           <header className="p-5 md:p-8 flex items-center justify-between bg-[#1A1A1A] text-white">
-            <div className="flex items-center gap-4">
-              {isMobile && <button onClick={() => navigate("/dashboard")} className="p-2 bg-white/10 rounded-xl"><ChevronLeft size={20} /></button>}
-              <div className="relative">
+            <div className="flex items-center gap-4 min-w-0">
+              {isMobile && <button onClick={() => navigate("/dashboard")} className="p-2 bg-white/10 rounded-xl shrink-0"><ChevronLeft size={20} /></button>}
+              <div className="relative shrink-0">
                 <img src={selectedAdvisor?.image_url} className="w-12 h-12 md:w-16 md:h-16 rounded-2xl md:rounded-3xl object-cover" alt="" />
-                <div className={`absolute -bottom-1 -right-1 w-4 h-4 border-2 border-[#1A1A1A] rounded-full ${isCallActive ? 'bg-green-500 animate-pulse' : 'bg-gray-500'}`} />
+                <div className={`absolute -bottom-1 -right-1 w-4 h-4 border-2 border-[#1A1A1A] rounded-full bg-green-500 ${isCallActive ? 'animate-pulse' : ''}`} />
               </div>
-              <div className="hidden xs:block">
-                <h3 className="font-bold text-base md:text-xl leading-none mb-1">{selectedAdvisor?.name}</h3>
-                <p className="text-[8px] md:text-[10px] font-black uppercase tracking-widest opacity-69 flex items-center gap-1">
-                  <Sparkles size={10} className="text-[#E94057]" /> {selectedAdvisor?.specialty}
+              <div className="min-w-0 flex-1">
+                <h3 className="font-bold text-base md:text-xl leading-none mb-1 truncate">{selectedAdvisor?.name}</h3>
+                <p className="text-[8px] md:text-[10px] font-black uppercase tracking-widest opacity-69 flex items-center gap-1 truncate">
+                  <Sparkles size={10} className="text-[#E94057] shrink-0" /> <span className="truncate">{selectedAdvisor?.specialty}</span>
                 </p>
               </div>
             </div>
@@ -451,20 +500,39 @@ const ConsultationPage: React.FC = () => {
           </div>
 
           {mode === "chat" && (
-            <footer className="p-6 md:p-10" style={{ backgroundColor: 'var(--color-card-bg)' }}>
-              <div className="max-w-4xl mx-auto flex items-center gap-3 p-2 rounded-[2.5rem] transition-all" style={{ backgroundColor: 'var(--color-input-solid)', border: '1px solid var(--color-border)' }}>
-                <input
-                  className={`flex-1 bg-transparent px-6 py-4 outline-none text-sm font-medium`}
-                  style={{ color: 'var(--color-text-heading)', caretColor: '#E94057' }}
+            <footer className="p-4 md:p-8" style={{ backgroundColor: 'var(--color-card-bg)' }}>
+              <div className="max-w-4xl mx-auto flex items-end gap-3 p-2 rounded-[2rem] transition-all" style={{ backgroundColor: 'var(--color-input-solid)', border: '1px solid var(--color-border)' }}>
+                <textarea
+                  className={`flex-1 bg-transparent px-5 py-4 outline-none text-[15px] font-medium resize-none leading-relaxed no-scrollbar`}
+                  style={{ color: 'var(--color-text-heading)', caretColor: '#E94057', minHeight: '56px', maxHeight: '140px' }}
                   placeholder={isTyping ? "Advisor is thinking..." : `Consult with ${selectedAdvisor?.name}...`}
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && !isTyping && handleSendMessage()}
+                  rows={1}
+                  onChange={(e) => {
+                    setInput(e.target.value);
+                    e.target.style.height = 'auto';
+                    e.target.style.height = `${e.target.scrollHeight}px`;
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      if (!isTyping && input.trim()) {
+                        handleSendMessage();
+                        e.currentTarget.style.height = 'auto'; // Reset height
+                        setInput(""); // Make sure input is cleared here too just in case
+                      }
+                    }
+                  }}
                 />
                 <button
-                  onClick={handleSendMessage}
+                  onClick={(e) => {
+                    handleSendMessage();
+                    // Find the textarea inside this parent and reset its height
+                    const textarea = e.currentTarget.parentElement?.querySelector('textarea');
+                    if (textarea) textarea.style.height = 'auto';
+                  }}
                   disabled={isTyping || !input.trim()}
-                  className="w-14 h-14 rounded-full flex items-center justify-center text-white transition-all duration-300 active:scale-95 disabled:opacity-40 cursor-pointer"
+                  className="w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-full flex items-center justify-center text-white transition-all duration-300 active:scale-95 disabled:opacity-40 cursor-pointer mb-1 md:mb-0"
                   style={{
                     backgroundColor: '#E94057',
                     boxShadow: input.trim() && !isTyping

@@ -3,6 +3,8 @@ import cors from 'cors';
 import stripeRoutes from './routes/stripe.routes.js';
 import authRoutes from './routes/auth.routes.js';
 import notificationRoutes from './routes/notifications.routes.js';
+import chatRoutes from './routes/chat.routes.js';
+import formsRoutes from './routes/forms.routes.js';
 
 const app = express();
 
@@ -32,6 +34,8 @@ app.use('/api/auth', authLimiter, authRoutes);
 
 // Apply general limiter to other routes
 app.use('/api/notifications', apiLimiter, notificationRoutes);
+app.use('/api/chat', apiLimiter, chatRoutes);
+app.use('/api/forms', apiLimiter, formsRoutes);
 
 // Apply Stripe routes (Webhook needs raw body, handled inside router or before json middleware)
 // Apply Stripe routes (Webhook needs raw body, handled inside router or before json middleware)

@@ -16,10 +16,15 @@ interface PricingCardProps {
 
 const PricingCard: React.FC<PricingCardProps> = ({ name, price, period, features, isPopular, isCurrent, onSelect, buttonText, disabled }) => (
     <div
-        className={`relative p-10 rounded-[3rem] border-2 transition-all hover:shadow-2xl flex flex-col ${isPopular ? 'border-[#E94057] scale-105 z-10' : 'border-transparent shadow-sm'}`}
+        className={`relative p-10 rounded-[3rem] border-2 transition-all duration-500 hover:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.5)] flex flex-col ${isPopular ? 'border-[#E94057] scale-105 z-10 shadow-2xl' : 'border-transparent shadow-sm hover:border-white/[0.05]'}`}
         style={{ backgroundColor: 'var(--color-card-bg)' }}
     >
-        {isPopular && <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#E94057] text-white px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">Best Value</div>}
+        {isPopular && (
+            <>
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#E94057] text-white px-6 py-2 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] shadow-xl z-20">Best Value</div>
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-1 bg-gradient-to-r from-transparent via-[#E94057]/50 to-transparent blur-sm" />
+            </>
+        )}
         <h4 className="text-2xl font-bold mb-4" style={{ color: themeData.colors.textHeading }}>{name}</h4>
         <div className="flex items-baseline gap-1 mb-8">
             <span className="text-4xl font-black" style={{ color: 'var(--color-text-heading)' }}>${price}</span>

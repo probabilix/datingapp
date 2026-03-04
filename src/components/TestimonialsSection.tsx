@@ -25,20 +25,24 @@ const testimonials = [
 const TestimonialsSection: React.FC = () => {
   return (
     <section className="px-6 py-16 md:py-24 flex flex-col items-center" style={{ backgroundColor: 'var(--color-bg-soft)' }}>
-      <div className="text-center mb-12 md:mb-16">
+      <div className="text-center mb-12 md:mb-16 relative z-10">
         <span className="block text-[11px] font-bold tracking-[0.2em] uppercase mb-3" style={{ color: themeData.colors.brand }}>Success Stories</span>
         <h2 className="text-[32px] md:text-[48px] leading-[1.1] mb-4" style={{ fontFamily: 'DM Serif Display', fontWeight: 400, color: themeData.colors.textHeading }}>What Our Users Say</h2>
+      </div>
+
+      <div className="absolute inset-0 -z-10 overflow-hidden opacity-[0.08] pointer-events-none">
+        <div className="absolute top-[20%] left-[10%] w-[30%] h-[30%] bg-[#E94057] blur-[120px] rounded-full" />
+        <div className="absolute bottom-[20%] right-[10%] w-[25%] h-[25%] bg-blue-600 blur-[100px] rounded-full" />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-[1100px] w-full">
         {testimonials.map((t, i) => (
           <div
             key={i}
-            className="p-8 rounded-[32px] flex flex-col"
+            className="p-10 rounded-[2.5rem] flex flex-col relative z-20 border transition-all duration-500 hover:shadow-2xl hover:scale-[1.02] cursor-default"
             style={{
               backgroundColor: 'var(--color-card-bg)',
-              border: '1px solid var(--color-border)',
-              boxShadow: '0 20px 50px -20px rgba(0,0,0,0.05)',
+              borderColor: 'var(--color-border-soft)',
             }}
           >
             <div className="flex text-yellow-400 text-sm mb-6">★★★★★</div>

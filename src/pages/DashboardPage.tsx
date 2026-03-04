@@ -35,15 +35,12 @@ const DashboardPage: React.FC = () => {
     setIsDiscoveryOpen(true);
   };
 
-  // Called when DiscoveryForm submits successfully
-  const handleFormSuccess = () => {
-    setIsAnalyzing(true);
-
+  const startSafetyTimeout = () => {
     // Safety fallback: If n8n completely fails and neither realtime nor polling catches it
-    // within 30 seconds, force the UI to resolve so the user isn't stuck forever.
+    // within 60 seconds, force the UI to resolve so the user isn't stuck forever.
     if (refreshTimeoutRef.current) clearTimeout(refreshTimeoutRef.current);
     refreshTimeoutRef.current = setTimeout(async () => {
-      // Check if we are STILL pending after 30 seconds
+      // Check if we are STILL pending after 60 seconds
       if (localStorage.getItem('discovery_pending') === 'true') {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) return;
@@ -52,7 +49,7 @@ const DashboardPage: React.FC = () => {
         if (latest) {
           setProfile(latest);
           // If we actually have an analysis, show it. Otherwise, unfortunately, n8n failed.
-          if (latest.persona_analysis) {
+          if (latest.persona_analysis && Object.keys(latest.persona_analysis).length > 0) {
             setShowAnalysis(true);
           }
         }
@@ -61,13 +58,22 @@ const DashboardPage: React.FC = () => {
         localStorage.removeItem('discovery_pending');
         setIsAnalyzing(false);
       }
-    }, 30000);
+    }, 60000);
+  };
+
+  // Called when DiscoveryForm submits successfully
+  const handleFormSuccess = () => {
+    setIsAnalyzing(true);
+    startSafetyTimeout();
   };
 
   useEffect(() => {
     // Sync initial state from storage, BUT prioritize profile data if it loads later
     const pending = localStorage.getItem('discovery_pending') === 'true';
     setIsAnalyzing(pending);
+    if (pending) {
+      startSafetyTimeout();
+    }
   }, []);
 
   useEffect(() => {
@@ -99,7 +105,6 @@ const DashboardPage: React.FC = () => {
         // --- WELCOME EMAIL CHECK ---
         // If flag is false (new user or legacy), trigger email via backend
         if (profileRes.data.welcome_email_sent === false && !welcomeEmailTriggered.current) {
-          console.log("[Dashboard] Welcome email not sent yet. Triggering...");
           welcomeEmailTriggered.current = true; // Lock immediately
 
           // Don't await, let it fail silently or succeed in background
@@ -112,7 +117,6 @@ const DashboardPage: React.FC = () => {
               userId: session.user.id
             })
           }).then(() => {
-            console.log("[Dashboard] Welcome email trigger sent.");
             // Update local state so we don't try again if the user navigates around (SPA)
             setProfile((prev: any) => ({ ...prev, welcome_email_sent: true }));
           }).catch(err => {
@@ -132,13 +136,25 @@ const DashboardPage: React.FC = () => {
           setTimeout(() => setIsDiscoveryOpen(true), 600);
         }
       }
-      if (usageRes.data) setUsage(usageRes.data);
+      if (usageRes.data) {
+        setUsage(usageRes.data);
+      }
       if (advisorsRes.data) setAdvisors(advisorsRes.data);
       setLoading(false);
+    };
 
-      // --- REALTIME SUBSCRIPTION ---
-      const channel = supabase
-        .channel('schema-db-changes')
+    fetchData();
+
+    // Setup realtime after initial fetch
+    let profileChannel: any;
+    let usageChannel: any;
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) return;
+
+      // --- PROFILE SYNC (plan level + analysis) ---
+      profileChannel = supabase
+        .channel(`profile-sync-${session.user.id}`)
         .on(
           'postgres_changes',
           {
@@ -148,33 +164,47 @@ const DashboardPage: React.FC = () => {
             filter: `id=eq.${session.user.id}`
           },
           (payload) => {
-            console.log("Realtime Update Received:", payload);
-            const newProfile = payload.new;
-            setProfile(newProfile);
+            setProfile(payload.new);
 
-            // Only treat as success if analysis actually CHANGED from baseline
+            // Handle persona analysis arrival
             const baseline = analysisBaselineRef.current;
-            const isGenuinelyNew = newProfile.persona_analysis &&
-              Object.keys(newProfile.persona_analysis).length > 0 &&
-              JSON.stringify(newProfile.persona_analysis) !== JSON.stringify(baseline);
+            const isGenuinelyNew = payload.new.persona_analysis &&
+              Object.keys(payload.new.persona_analysis).length > 0 &&
+              JSON.stringify(payload.new.persona_analysis) !== JSON.stringify(baseline);
 
             if (isGenuinelyNew) {
-              console.log("Realtime: genuine new analysis found. Updating UI.");
               analysisBaselineRef.current = null;
               localStorage.removeItem('discovery_pending');
               setIsAnalyzing(false);
-              setShowAnalysis(true); // Force open panel
+              setShowAnalysis(true);
             }
           }
         )
         .subscribe();
 
-      return () => {
-        supabase.removeChannel(channel);
-        if (refreshTimeoutRef.current) clearTimeout(refreshTimeoutRef.current);
-      };
+      // --- USAGE SYNC (voice mins, chat credits, plan) ---
+      usageChannel = supabase
+        .channel(`usage-sync-${session.user.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'user_usage',
+            filter: `user_id=eq.${session.user.id}`
+          },
+          (payload) => {
+            if (payload.new) setUsage(payload.new);
+          }
+        )
+        .subscribe();
+    });
+
+    return () => {
+      if (profileChannel) supabase.removeChannel(profileChannel);
+      if (usageChannel) supabase.removeChannel(usageChannel);
+      if (refreshTimeoutRef.current) clearTimeout(refreshTimeoutRef.current);
     };
-    fetchData();
   }, [navigate]);
 
   // --- DEDICATED POLLING EFFECT ---
@@ -205,18 +235,17 @@ const DashboardPage: React.FC = () => {
         JSON.stringify(newProfile.persona_analysis) !== JSON.stringify(baseline);
 
       if (isGenuinelyNew) {
-        console.log("Polling: new analysis found, updating UI.");
         analysisBaselineRef.current = null;
         setProfile(newProfile);
         localStorage.removeItem('discovery_pending');
         setIsAnalyzing(false);  // this stops the next poll via effect cleanup
         setShowAnalysis(true);
       } else if (!stopped) {
-        setTimeout(poll, 2000);
+        setTimeout(poll, 5000);
       }
     };
 
-    const timer = setTimeout(poll, 2000); // first poll after 2s
+    const timer = setTimeout(poll, 5000); // first poll after 5s
     return () => {
       stopped = true;
       clearTimeout(timer);
@@ -356,31 +385,37 @@ const DashboardPage: React.FC = () => {
                 return (
                   <div
                     key={advisor.id}
-                    className={`group rounded-[2rem] p-5 md:p-8 shadow-sm transition-all flex flex-col items-center relative ${isLocked
-                      ? 'cursor-pointer border-2 border-[#E94057]/20'
-                      : 'hover:shadow-md'
+                    className={`group rounded-[2.5rem] p-6 md:p-8 shadow-sm transition-all flex flex-col items-center relative border overflow-hidden ${isLocked
+                      ? 'cursor-pointer animate-breathing-glow'
+                      : 'hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.3)] hover:border-[#E94057]/20'
                       }`}
-                    style={{ backgroundColor: 'var(--color-card-bg)', border: isLocked ? undefined : '1px solid var(--color-border)' }}
+                    style={{
+                      backgroundColor: 'var(--color-card-bg)',
+                      borderColor: 'var(--color-border-soft)'
+                    }}
                     onClick={isLocked ? () => navigate('/billing') : undefined}
                   >
                     {/* Photo */}
-                    <div className="relative mb-5">
+                    <div className="relative mb-6">
+                      <div className="absolute inset-0 bg-[#E94057]/20 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                       <img src={advisor.image_url} alt={advisor.name}
-                        className={`w-20 h-20 md:w-24 md:h-24 rounded-[1.5rem] md:rounded-[2rem] object-cover shadow-sm transition-transform ${!isLocked ? 'group-hover:scale-105' : 'opacity-[0.85]'}`} />
-                      {/* Online dot — only for unlocked */}
+                        className={`w-24 h-24 md:w-28 md:h-28 rounded-[2rem] md:rounded-[2.5rem] object-cover shadow-2xl relative z-10 transition-transform duration-500 ${!isLocked ? 'group-hover:scale-105 group-hover:rotate-1' : 'opacity-[0.85]'}`} />
+
+                      {/* Online status indicator */}
                       {advisor.is_online && !isLocked && (
-                        <div className="absolute bottom-0.5 right-0.5 w-4 h-4 bg-green-500 border-2 rounded-full shadow-sm" style={{ borderColor: 'var(--color-card-bg)' }} />
+                        <div className="absolute bottom-1 right-1 w-5 h-5 bg-green-500 border-4 rounded-full shadow-lg z-20 animate-pulse" style={{ borderColor: 'var(--color-card-bg)' }} />
                       )}
+
                       {/* Lock badge on photo — only for locked */}
                       {isLocked && (
-                        <div className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full flex items-center justify-center shadow-md border-2 border-white" style={{ backgroundColor: themeData.colors.brand }}>
-                          <Lock size={10} className="text-white" />
+                        <div className="absolute -top-1 -right-1 w-8 h-8 rounded-full flex items-center justify-center shadow-xl border-2 border-white/10 backdrop-blur-md z-20 animate-breathing-glow" style={{ backgroundColor: themeData.colors.brand }}>
+                          <Lock size={12} className="text-white" />
                         </div>
                       )}
                     </div>
 
                     {/* Rating */}
-                    <div className={`flex items-center gap-1 text-yellow-500 text-[10px] mb-1 px-2 py-0.5 bg-yellow-50 rounded-full ${isLocked ? 'opacity-[0.8]' : ''}`}>
+                    <div className={`flex items-center gap-1 text-yellow-500 text-[10px] mb-1 px-2 py-0.5 rounded-full ${isLocked ? 'opacity-[0.8]' : ''}`} style={{ backgroundColor: 'rgba(255, 193, 7, 0.18)' }}>
                       <Star size={10} fill="currentColor" /> {advisor.rating}
                     </div>
 
@@ -388,7 +423,7 @@ const DashboardPage: React.FC = () => {
                     <h4 className={`text-sm md:text-xl font-bold mb-0.5 text-center ${isLocked ? 'opacity-[0.85]' : ''}`} style={{ fontFamily: 'DM Serif Display', color: themeData.colors.textHeading }}>{advisor.name}</h4>
 
                     {/* Specialty */}
-                    <p className={`text-[9px] md:text-[11px] uppercase font-bold tracking-wide mb-6 text-center ${isLocked ? 'opacity-50' : 'opacity-60'}`}>{advisor.specialty}</p>
+                    <p className={`text-[9px] md:text-[11px] uppercase font-bold tracking-wide mb-6 text-center ${isLocked ? 'opacity-50' : 'opacity-80'}`}>{advisor.specialty}</p>
 
                     {/* Action area — upgrade CTA for locked, buttons for unlocked */}
                     {isLocked ? (
@@ -442,11 +477,13 @@ const DashboardPage: React.FC = () => {
 const StatCard = ({ icon, title, value, color }: any) => {
   const isHex = color.startsWith('#');
   return (
-    <div className="w-full rounded-[2rem] border p-6 flex items-center gap-4 group transition-all cursor-pointer" style={{ backgroundColor: 'var(--color-card-bg)', borderColor: 'var(--color-border)' }}>
-      <div className={`w-12 h-12 rounded-xl text-white flex items-center justify-center shadow-md transition-transform group-hover:rotate-6 ${!isHex ? color : ''}`} style={isHex ? { backgroundColor: color } : {}}>{icon}</div>
+    <div className="w-full rounded-[2.5rem] border p-7 flex items-center gap-5 group transition-all cursor-pointer hover:shadow-xl hover:translate-y-[-2px] active:scale-[0.98]"
+      style={{ backgroundColor: 'var(--color-card-bg)', borderColor: 'var(--color-border-soft)' }}>
+      <div className={`w-14 h-14 rounded-2xl text-white flex items-center justify-center shadow-2xl transition-all duration-500 group-hover:rotate-6 group-hover:scale-110 ${!isHex ? color : ''}`}
+        style={isHex ? { backgroundColor: color, boxShadow: `0 12px 24px -8px ${color}66` } : {}}>{icon}</div>
       <div>
-        <p className="text-[9px] font-black uppercase opacity-60 tracking-widest mb-0.5" style={{ color: themeData.colors.textBody }}>{title}</p>
-        <h3 className="text-xl font-bold" style={{ color: themeData.colors.textHeading }}>{value}</h3>
+        <p className="text-[10px] font-black uppercase opacity-80 tracking-[0.15em] mb-1.5" style={{ color: themeData.colors.textBody }}>{title}</p>
+        <h3 className="text-2xl font-bold tracking-tight" style={{ color: themeData.colors.textHeading }}>{value}</h3>
       </div>
     </div>
   );

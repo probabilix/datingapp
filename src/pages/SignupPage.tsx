@@ -60,12 +60,16 @@ const SignupPage: React.FC = () => {
     <div className="min-h-screen w-full flex flex-col md:flex-row relative" style={{ backgroundColor: 'var(--color-page-bg)' }}>
       <Helmet><title>Create Account | DatingAdvice.io</title></Helmet>
 
-      <div className="hidden md:flex flex-1 items-center justify-center p-12 shadow-2xl auth-side-panel">
-        <div className="text-center max-w-sm">
-          <div className="w-24 h-24 bg-white/40 dark:bg-white/5 backdrop-blur-xl rounded-[40px] shadow-2xl dark:shadow-none flex items-center justify-center mx-auto mb-10 border border-white/50 dark:border-white/10 transition-all">
-            <Logo className="h-14 w-14 object-contain drop-shadow-sm dark:drop-shadow-[0_0_15px_rgba(255,255,255,0.15)] transition-all" />
+      <div className="hidden md:flex flex-1 items-center justify-center p-12 order-first shadow-2xl auth-side-panel relative overflow-hidden bg-[#0d0d0f]">
+        {/* Decorative background elements for "Rich" feel */}
+        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#E94057]/10 blur-[120px] rounded-full" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/5 blur-[100px] rounded-full" />
+
+        <div className="text-center max-w-sm relative z-10">
+          <div className="w-28 h-28 bg-white/40 dark:bg-white/[0.03] backdrop-blur-3xl rounded-[2.5rem] shadow-2xl flex items-center justify-center mx-auto mb-10 border border-white/50 dark:border-white/[0.05] transition-all hover:scale-105 duration-500">
+            <Logo className="h-16 w-16 object-contain drop-shadow-2xl dark:drop-shadow-[0_0_20px_rgba(255,255,255,0.1)]" />
           </div>
-          <h2 className="text-5xl font-bold mb-6 leading-tight" style={{ fontFamily: 'DM Serif Display', color: navyColor }}>Start Your Love Journey</h2>
+          <h2 className="text-5xl font-bold mb-6 leading-tight tracking-tight" style={{ fontFamily: 'DM Serif Display', color: 'var(--color-text-heading)' }}>Start Your Love Journey</h2>
         </div>
       </div>
 

@@ -81,17 +81,18 @@ const AdvisorsSection: React.FC = () => {
                 className="absolute p-10 rounded-[3.5rem] shadow-2xl flex flex-col items-center transition-all duration-1000 ease-in-out"
                 style={{
                   backgroundColor: 'var(--color-card-bg)',
-                  border: '1px solid var(--color-border)',
+                  border: '1px solid var(--color-border-soft)',
                   width: '360px',
                   transform: `
-                    translateX(${offset * 60 - 60}px) 
-                    translateY(${offset * 50 - 50}px) 
-                    rotate(${offset * 10 - 10}deg)
-                    scale(${1 - offset * 0.12})
+                    translateX(${offset * 70 - 70}px) 
+                    translateY(${offset * 55 - 55}px) 
+                    rotate(${offset * 12 - 12}deg)
+                    scale(${1 - offset * 0.15})
                   `,
-                  opacity: 1 - offset * 0.25,
+                  boxShadow: offset === 0 ? '0 40px 100px -20px rgba(0,0,0,0.6)' : '0 10px 30px rgba(0,0,0,0.2)',
+                  opacity: 1 - offset * 0.3,
                   zIndex: 30 - offset,
-                  filter: offset === 0 ? 'none' : 'blur(1.5px)'
+                  filter: offset === 0 ? 'none' : 'blur(2px)'
                 }}
               >
                 <div className="relative mb-8">

@@ -53,45 +53,57 @@
    Industry-standard, tested, clean
    ============================================ */
 .dark {
-  /* Backgrounds — ultra-premium deep dark (Linear/Vercel style) */
-  --color-page-bg: #080808;
-  --color-bg-soft: #080808;
-  --color-bg-footer: #050505;
-  --color-bg-accent: #0A0A0A;
+  /* ===================================================
+     Industry Standard Medium Dark (Linear / GitHub Dimmed)
+     Background: #18181b (Zinc 900) — the exact shade used by
+     Linear, Shadcn, and GitHub's "Dark Dimmed" theme.
+     NOT pitch black. NOT bright grey. The perfect medium.
+  =================================================== */
 
-  /* Card surfaces — highly sleek, barely lifted */
-  --color-card-bg: #121212;
-  --color-card-hover: #1A1A1A;
+  /* Backgrounds */
+  --color-page-bg: #18181b;
+  --color-bg-soft: #18181b;
+  --color-bg-footer: #131316;
+  --color-bg-accent: #1f1f23;
 
-  /* Text — slightly muted to reduce harsh brightness */
-  --color-text-heading: #EAEAEC;
-  --color-text-body: #A1A1AA;
-  --color-text-muted: #71717A;
+  /* Card surfaces — Elevated above the background (Zinc 800 equivalent) */
+  --color-card-bg: #27272a;
+  --color-card-hover: #303035;
 
-  /* Borders — practically invisible */
-  --color-border: #222222;
-  --color-border-soft: rgba(255, 255, 255, 0.03);
+  /* Text */
+  --color-text-heading: #fafafa;
+  /* Zinc 50 */
+  --color-text-body: #c4c4cc;
+  /* Lighter for readability on dark cards */
+  --color-text-muted: #8b8b97;
+  /* Muted but still readable */
+
+  /* Borders */
+  --color-border: #3f3f46;
+  /* Zinc 700 */
+  --color-border-soft: rgba(255, 255, 255, 0.06);
 
   /* Nav */
-  --color-nav-bg: rgba(8, 8, 8, 0.95);
-  --color-mobile-menu-bg: #121212;
+  --color-nav-bg: rgba(24, 24, 27, 0.92);
+  --color-mobile-menu-bg: #27272a;
 
-  /* Inputs — distinct but sleek */
-  --color-input-bg: rgba(255, 255, 255, 0.03);
-  --color-input-solid: #18181B;
+  /* Inputs */
+  --color-input-bg: rgba(63, 63, 70, 0.35);
+  /* Zinc 700 tinted */
+  --color-input-solid: #303035;
 
-  /* Glow colors — vibrant but elegant (Pink / Purple) */
-  --color-glow-1: #E94057;
-  --color-glow-2: #8B5CF6;
+  /* Glow colors */
+  --color-glow-1: rgba(233, 64, 87, 0.1);
+  --color-glow-2: rgba(99, 102, 241, 0.08);
 
   /* Badges */
-  --color-badge-bg: rgba(233, 64, 87, 0.12);
-  --color-badge-border: rgba(233, 64, 87, 0.3);
+  --color-badge-bg: rgba(24, 24, 27, 0.7);
+  --color-badge-border: rgba(233, 64, 87, 0.25);
 
-  --color-faq-closed: rgba(233, 64, 87, 0.1);
+  --color-faq-closed: rgba(233, 64, 87, 0.03);
 
   /* Hero banner */
-  --color-hero-bg: #0A0A0B;
+  --color-hero-bg: #1f1f23;
 }
 
 @layer base {
@@ -155,7 +167,26 @@
 .dark .auth-side-panel {
   background:
     radial-gradient(ellipse at 30% 60%, rgba(233, 64, 87, 0.12) 0%, transparent 50%),
-    linear-gradient(160deg, #161B22 0%, #0D1117 100%);
+    linear-gradient(160deg, #1f1f23 0%, #18181b 100%);
+}
+
+/* Breathing Glow Animation for Locked Advisors & Icons */
+@keyframes breathing-glow {
+
+  0%,
+  100% {
+    border-color: #3f3f46;
+    box-shadow: 0 0 0px transparent;
+  }
+
+  50% {
+    border-color: rgba(233, 64, 87, 0.5);
+    box-shadow: 0 0 18px rgba(233, 64, 87, 0.12);
+  }
+}
+
+.animate-breathing-glow {
+  animation: breathing-glow 3s ease-in-out infinite;
 }
 
 /* Dark mode: ensure placeholder text is readable */

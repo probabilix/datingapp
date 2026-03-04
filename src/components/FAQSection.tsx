@@ -1,9 +1,38 @@
-import React, { useState } from 'react';
-import { faqData } from '../data/faqData';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabaseClient';
 import { themeData } from '../data/themeData';
 
+interface FAQ {
+  id: number;
+  question: string;
+  answer: string;
+}
+
 const FAQSection: React.FC = () => {
-  const [openId, setOpenId] = useState<number | null>(1);
+  const [openId, setOpenId] = useState<number | null>(null);
+  const [faqData, setFaqData] = useState<FAQ[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchFAQs = async () => {
+      const { data, error } = await supabase
+        .from('faqs')
+        .select('*')
+        .order('order_index', { ascending: true });
+
+      if (error) {
+        console.error("Error fetching FAQs:", error);
+      }
+
+      if (data && data.length > 0) {
+        setFaqData(data);
+        setOpenId(data[0].id); // Open first one by default
+      }
+      setLoading(false);
+    };
+
+    fetchFAQs();
+  }, []);
 
   const toggleFAQ = (id: number) => {
     setOpenId(openId === id ? null : id);
@@ -37,15 +66,20 @@ const FAQSection: React.FC = () => {
 
       {/* ACCORDION LIST */}
       <div className="max-w-[800px] w-full flex flex-col gap-4">
-        {faqData.map((item) => (
+        {loading ? (
+          <div className="flex justify-center p-8">
+            <div className="w-8 h-8 rounded-full border-2 border-t-[#E94057] border-gray-200 animate-spin"></div>
+          </div>
+        ) : faqData.map((item) => (
           <div
             key={item.id}
-            className="rounded-[24px] md:rounded-[32px] overflow-hidden shadow-[0_10px_30px_-15px_rgba(0,0,0,0.06)] transition-all duration-300"
+            className={`rounded-[24px] md:rounded-[32px] overflow-hidden transition-all duration-500 relative ${openId === item.id ? 'shadow-[0_20px_50px_-10px_rgba(0,0,0,0.5)] border-[#E94057]/20' : 'shadow-none border-transparent hover:border-white/[0.05]'}`}
             style={{
               backgroundColor: 'var(--color-card-bg)',
-              border: '1px solid var(--color-border)',
+              border: item.id === openId ? undefined : '1px solid var(--color-border)',
             }}
           >
+            {openId === item.id && <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[60%] h-[1px] bg-gradient-to-r from-transparent via-[#E94057]/40 to-transparent" />}
             <button
               onClick={() => toggleFAQ(item.id)}
               className="w-full px-6 md:px-8 py-5 md:py-7 flex items-center justify-between text-left transition-colors"

@@ -51,7 +51,7 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({
             </div>
 
             <div className="mt-auto pt-6" style={{ borderTop: '1px solid var(--color-border)' }}>
-                <label className="flex items-start gap-3 cursor-pointer group p-2 -ml-2 rounded-lg transition-colors" style={{ color: 'var(--color-text-body)' }}>
+                <label className="flex items-start gap-4 cursor-pointer group p-3 -ml-3 rounded-2xl transition-all hover:bg-white/[0.02]" style={{ color: 'var(--color-text-body)' }}>
                     <div className="relative flex-shrink-0 mt-0.5">
                         <input
                             type="checkbox"
@@ -59,14 +59,14 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({
                             checked={isChecked}
                             onChange={(e) => onCheck(e.target.checked)}
                         />
-                        <div className={`w-5 h-5 border-2 rounded transition-all duration-200 ${isChecked
-                            ? 'bg-rose-500 border-rose-500'
-                            : 'border-rose-300/40 group-hover:border-rose-400'}`}
+                        <div className={`w-6 h-6 border-2 rounded-lg transition-all duration-300 flex items-center justify-center ${isChecked
+                            ? 'bg-rose-500 border-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.3)]'
+                            : 'border-white/10 group-hover:border-rose-400/40'}`}
                             style={!isChecked ? { backgroundColor: 'var(--color-input-solid)' } : {}}>
-                            <Check size={14} className={`text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-opacity ${isChecked ? 'opacity-100' : 'opacity-0'}`} />
+                            <Check size={16} className={`text-white transition-opacity duration-300 ${isChecked ? 'opacity-100' : 'opacity-0'}`} />
                         </div>
                     </div>
-                    <span className="text-sm font-medium select-none" style={{ color: 'var(--color-text-heading)' }}>
+                    <span className="text-[14px] font-medium leading-tight select-none pt-0.5" style={{ color: 'var(--color-text-heading)' }}>
                         {checkboxLabel}
                     </span>
                 </label>
@@ -74,8 +74,11 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({
                 <button
                     onClick={onNext}
                     disabled={!isChecked || isLoading}
-                    className="w-full mt-6 py-3.5 px-6 rounded-xl text-white font-bold shadow-lg shadow-rose-500/20 active:scale-[0.98] transition-all disabled:opacity-50 disabled:shadow-none disabled:bg-gray-400"
-                    style={{ backgroundColor: !isChecked && !isLoading ? '#9CA3AF' : themeData.colors.brand }}
+                    className="w-full mt-8 py-4.5 px-6 rounded-2xl text-white font-bold text-lg shadow-2xl transition-all active:scale-[0.98] disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed cursor-pointer"
+                    style={{
+                        backgroundColor: !isChecked && !isLoading ? 'var(--color-border)' : themeData.colors.brand,
+                        boxShadow: isChecked ? '0 20px 40px -10px rgba(233, 64, 87, 0.4)' : 'none'
+                    }}
                 >
                     {isLoading ? 'Processing...' : buttonText}
                 </button>

@@ -74,12 +74,12 @@ const Header: React.FC = () => {
                 className="fixed top-0 left-0 w-full z-50 transition-all duration-300 h-20"
                 style={{
                     backgroundColor:
-                        isScrolled || isDashboard ? 'var(--color-nav-bg)' : 'transparent',
-                    backdropFilter: isScrolled || isDashboard ? 'blur(10px)' : 'none',
+                        isScrolled ? 'var(--color-nav-bg)' : 'transparent',
+                    backdropFilter: isScrolled ? 'blur(20px)' : 'none',
                     borderBottom:
-                        isScrolled || isDashboard
-                            ? `1px solid var(--color-border)`
-                            : 'transparent',
+                        isScrolled
+                            ? '1px solid var(--color-border-soft)'
+                            : '1px solid transparent',
                 }}
             >
                 <div className="h-full max-w-full mx-auto px-6 md:px-10 flex items-center justify-between">

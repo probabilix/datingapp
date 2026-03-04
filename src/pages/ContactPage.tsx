@@ -6,6 +6,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { themeData } from '../data/themeData';
 import { supabase } from '../lib/supabaseClient';
+import { API_BASE_URL } from '../config/api';
 
 interface ContactDetails {
   title: string;
@@ -27,7 +28,6 @@ const ContactPage: React.FC = () => {
     message: ''
   });
   const [loading, setLoading] = useState(false);
-  const [webhookUrl, setWebhookUrl] = useState<string | null>(null);
   const [status, setStatus] = useState<'idle' | 'success' | 'error' | 'duplicate'>('idle');
   const [lastSubmitted, setLastSubmitted] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -36,18 +36,6 @@ const ContactPage: React.FC = () => {
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
 
   useEffect(() => {
-    const fetchSettings = async () => {
-      const { data } = await supabase
-        .from('system_settings')
-        .select('key_value')
-        .eq('key_name', 'N8N_CONTACT_WEBHOOK')
-        .single();
-
-      if (data) {
-        setWebhookUrl(data.key_value);
-      }
-    };
-
     const fetchContactData = async () => {
       // Fetch Contact Details
       const { data: contactDetailsData } = await supabase
@@ -76,7 +64,6 @@ const ContactPage: React.FC = () => {
     };
 
 
-    fetchSettings();
     fetchContactData();
   }, []);
 
@@ -128,18 +115,13 @@ const ContactPage: React.FC = () => {
       return;
     }
 
-    if (!webhookUrl) {
-      alert("Contact system is currently under maintenance. Please try again later.");
-      return;
-    }
-
     setLoading(true);
     try {
       // Get current user session if available
       const { data: { session } } = await supabase.auth.getSession();
       const userId = session?.user?.id || null; // Send null for Guest to let DB generate UUID
 
-      const response = await fetch(webhookUrl, {
+      const response = await fetch(`${API_BASE_URL}/api/forms/contact`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -300,7 +282,7 @@ const ContactPage: React.FC = () => {
                 <div className="pt-2">
                   <button
                     type="submit"
-                    disabled={loading || !webhookUrl}
+                    disabled={loading}
                     className="w-full py-5 rounded-xl text-white font-bold transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg disabled:opacity-70 disabled:hover:scale-100 flex items-center justify-center gap-2"
                     style={{ backgroundColor: themeData.colors.brand }}
                   >

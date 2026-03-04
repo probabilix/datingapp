@@ -81,9 +81,11 @@ const Footer: React.FC = () => {
 
     return (
         <footer
-            className="px-6 pt-16 pb-12 border-t"
+            className="px-6 pt-16 pb-12 border-t relative overflow-hidden"
             style={{ backgroundColor: themeData.colors.bgFooter, borderColor: 'var(--color-border)' }}
         >
+            {/* Top border glow for "Rich" separation in dark mode */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[70%] h-[1px] bg-gradient-to-r from-transparent via-[#E94057]/20 to-transparent dark:block hidden" />
             <div className="max-w-[1100px] mx-auto">
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 md:gap-8 mb-16">
 

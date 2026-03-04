@@ -12,7 +12,7 @@ const CheckoutPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const [dbCoupons, setDbCoupons] = useState<any[]>([]);
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
   const [purchaseItem, setPurchaseItem] = useState<any>(null);
 
   // Restored Coupon State and UI Logic
@@ -42,14 +42,11 @@ const CheckoutPage: React.FC = () => {
     }
 
     const init = async () => {
-      // Fetch settings & coupons concurrently
-      const [, couponsRes, plansRes] = await Promise.all([
+      // Fetch settings & plans concurrently
+      const [, plansRes] = await Promise.all([
         supabase.from('payment_settings').select('*').eq('is_enabled', true),
-        supabase.from('coupons').select('*').eq('is_enabled', true),
         planId ? supabase.from('plan_settings').select('*').eq('plan_name', planId).single() : Promise.resolve({ data: null })
       ]);
-
-      if (couponsRes.data) setDbCoupons(couponsRes.data);
 
       if (isCustom && customAmount) {
         setPurchaseItem({
@@ -72,20 +69,35 @@ const CheckoutPage: React.FC = () => {
     init();
   }, [planId, isCustom, customAmount, customType, customCredits]);
 
-  const handleApplyCoupon = (e: React.FormEvent) => {
+  const handleApplyCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
     const code = couponInput.trim().toUpperCase();
-    // Validate against DB coupons
-    const coupon = dbCoupons.find(c => c.code === code);
+    if (!code) return;
 
-    if (!coupon) {
-      setCouponError('INVALID CODE'); // Exact design behavior restored
-      setAppliedCoupon(null);
-      return;
-    }
-
-    setAppliedCoupon(coupon);
+    setValidatingCoupon(true);
     setCouponError('');
+    setAppliedCoupon(null);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/payments/stripe/validate-coupon`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setCouponError(data.error || 'INVALID CODE');
+      } else {
+        setAppliedCoupon(data.coupon);
+      }
+    } catch (err) {
+      console.error('Coupon validation error:', err);
+      setCouponError('ERROR VALIDATING CODE');
+    } finally {
+      setValidatingCoupon(false);
+    }
   };
 
   const discount = appliedCoupon && purchaseItem
@@ -211,7 +223,9 @@ const CheckoutPage: React.FC = () => {
                     value={couponInput}
                     onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
                   />
-                  <button type="submit" className="text-white px-6 md:px-10 rounded-2xl font-bold text-xs cursor-pointer" style={{ backgroundColor: '#E94057' }}>APPLY</button>
+                  <button type="submit" disabled={validatingCoupon} className="text-white px-6 md:px-10 rounded-2xl font-bold text-xs cursor-pointer disabled:opacity-50" style={{ backgroundColor: '#E94057' }}>
+                    {validatingCoupon ? 'CHECKING...' : 'APPLY'}
+                  </button>
                 </form>
                 {couponError && <p className="text-red-500 text-[10px] font-bold uppercase px-2">{couponError}</p>}
                 {appliedCoupon && <p className="text-green-600 text-[10px] font-bold uppercase px-2">COUPON APPLIED: {appliedCoupon.code}</p>}

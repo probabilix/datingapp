@@ -16,17 +16,13 @@ const OnboardingLayout: React.FC<OnboardingLayoutProps> = ({ children, currentSt
             className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden"
             style={{ backgroundColor: themeData.colors.bgSoft }}
         >
-            {/* Background Blobs for specific aesthetic */}
-            <div
-                className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"
-                style={{ backgroundColor: '#FFD1DC' }}
-            />
-            <div
-                className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"
-                style={{ backgroundColor: '#E2E8F0' }}
-            />
+            {/* Lavish Atmospheric Glows */}
+            <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
+                <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-[#E94057]/10 blur-[130px] rounded-full dark:opacity-40" />
+                <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/5 blur-[120px] rounded-full dark:opacity-30" />
+            </div>
 
-            <div className="w-full max-w-md backdrop-blur-xl rounded-3xl shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]" style={{ backgroundColor: 'var(--color-card-bg)', border: '1px solid var(--color-border)' }}>
+            <div className="w-full max-w-md backdrop-blur-2xl rounded-[2.5rem] shadow-[0_40px_100px_-15px_rgba(0,0,0,0.4)] relative overflow-hidden flex flex-col max-h-[90vh] border" style={{ backgroundColor: 'var(--color-card-bg)', borderColor: 'var(--color-border-soft)' }}>
                 {/* Progress Bar */}
                 <div className="h-1.5 w-full" style={{ backgroundColor: 'var(--color-border)' }}>
                     <motion.div

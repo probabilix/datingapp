@@ -38,9 +38,15 @@ const HeroSection: React.FC = () => {
           }}
         />
 
-        <div className="absolute top-[-5%] left-[-5%] w-[50%] h-[50%] rounded-full blur-[120px] opacity-60 dark:opacity-[0.15]" style={{ backgroundColor: 'var(--color-glow-1)' }} />
-        <div className="absolute bottom-[10%] right-[-5%] w-[45%] h-[45%] rounded-full blur-[120px] opacity-50 dark:opacity-[0.15]" style={{ backgroundColor: 'var(--color-glow-2)' }} />
-        <div className="absolute top-0 left-[50%] -translate-x-1/2 w-[70%] h-[40%] rounded-full blur-[140px] opacity-0 dark:opacity-[0.12]" style={{ backgroundColor: 'var(--color-glow-1)' }} />
+        <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full blur-[140px] opacity-60 dark:opacity-[0.18]" style={{ backgroundColor: 'var(--color-glow-1)' }} />
+        <div className="absolute bottom-[0%] right-[-10%] w-[55%] h-[55%] rounded-full blur-[140px] opacity-40 dark:opacity-[0.12]" style={{ backgroundColor: 'var(--color-glow-2)' }} />
+        <div className="absolute top-0 left-[50%] -translate-x-1/2 w-[80%] h-[50%] rounded-full blur-[160px] opacity-0 dark:opacity-[0.1]" style={{ backgroundColor: 'var(--color-glow-1)' }} />
+        {/* Deep center atmospheric gradient for "Rich" feel */}
+        <div className="absolute inset-0 hidden dark:block pointer-events-none"
+          style={{
+            background: 'radial-gradient(circle at 50% 30%, rgba(233, 64, 87, 0.03) 0%, transparent 70%)'
+          }}
+        />
       </div>
 
       {/* 2. Floating Icons */}

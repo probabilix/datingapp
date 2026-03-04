@@ -527,3 +527,32 @@ export const handleStripeWebhook = async (req, res) => {
 
   res.json({ received: true });
 };
+
+// --- 5. Validate Coupon Code (Secure Backend Check) ---
+export const validateCoupon = async (req, res) => {
+  try {
+    const supabase = getSupabase();
+    const { code } = req.body;
+
+    if (!code) return res.status(400).json({ error: "Coupon code is required" });
+
+    // Since getSupabase() uses the service_role_key, this can bypass the RLS policies 
+    // that correctly restrict the frontend from downloading all coupons.
+    const { data: coupon, error } = await supabase
+      .from('coupons')
+      .select('code, type, value, is_enabled')
+      .eq('code', code.toUpperCase())
+      // Check for is_enabled here to be absolutely safe
+      .eq('is_enabled', true)
+      .single();
+
+    if (error || !coupon) {
+      return res.status(404).json({ error: "INVALID CODE" });
+    }
+
+    res.json({ coupon });
+  } catch (error) {
+    console.error("Coupon Validation Error:", error);
+    res.status(500).json({ error: "Failed to validate coupon" });
+  }
+};
