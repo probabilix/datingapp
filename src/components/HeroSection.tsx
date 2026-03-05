@@ -127,12 +127,12 @@ const HeroSection: React.FC = () => {
         {/* Social Proof */}
         <div className="flex flex-row items-center justify-center gap-4">
           <div className="flex -space-x-3.5">
-            {[21, 32, 23, 24, 25].map((imgId, index) => (
+            {[1, 2, 3, 4, 5].map((num, index) => (
               <img
                 key={index}
-                className="w-10 h-10 rounded-full border-[3px] shadow-sm object-cover"
+                className="w-12 h-12 rounded-full border-[3px] shadow-sm object-cover brightness-110"
                 style={{ borderColor: 'var(--color-card-bg)' }}
-                src={`https://i.pravatar.cc/100?img=${imgId}`}
+                src={`/images/avatars/avatar-${num}.png`}
                 alt="user avatar"
               />
             ))}
