@@ -350,14 +350,14 @@ const DashboardPage: React.FC = () => {
           </section>
 
           <section className="px-6 md:px-12 lg:px-24 mb-12">
-            <div className="flex overflow-x-auto md:overflow-visible md:grid md:grid-cols-3 gap-6 no-scrollbar pb-4">
-              <Link to="/billing" className="block min-w-[240px] md:min-w-0">
-                <StatCard icon={<Clock size={22} />} title="Voice Time" value={`${usage?.voice_minutes_left || 0}m`} color="bg-blue-500" />
+            <div className="flex gap-6 overflow-x-auto no-scrollbar pb-4 -mx-6 px-6 md:mx-0 md:px-0 md:overflow-visible">
+              <Link to="/billing" className="block shrink-0 min-w-[260px] md:w-auto md:flex-1">
+                <StatCard icon={<Clock size={22} />} title="Voice Time" value={<><span>{Number(usage?.voice_minutes_left || 0).toFixed(2)}</span> <span className="shrink-0">m</span></>} color="bg-blue-500" />
               </Link>
-              <Link to="/billing" className="block min-w-[240px] md:min-w-0">
-                <StatCard icon={<MessageSquare size={22} />} title="Chat Credits" value={`${Number(usage?.messages_left || 0).toFixed(2)} left`} color="bg-purple-500" />
+              <Link to="/billing" className="block shrink-0 min-w-[260px] md:w-auto md:flex-1">
+                <StatCard icon={<MessageSquare size={22} />} title="Chat Credits" value={<><span>{Number(usage?.messages_left || 0).toFixed(2)}</span> <span className="shrink-0">left</span></>} color="bg-purple-500" />
               </Link>
-              <Link to="/billing" className="block min-w-[240px] md:min-w-0">
+              <Link to="/billing" className="block shrink-0 min-w-[260px] md:w-auto md:flex-1">
                 <StatCard icon={<ShieldCheck size={22} />} title="Plan Level" value={usage?.plan_type || 'Free'} color={themeData.colors.brand} />
               </Link>
             </div>
@@ -481,9 +481,9 @@ const StatCard = ({ icon, title, value, color }: any) => {
       style={{ backgroundColor: 'var(--color-card-bg)', borderColor: 'var(--color-border-soft)' }}>
       <div className={`w-14 h-14 rounded-2xl text-white flex items-center justify-center shadow-2xl transition-all duration-500 group-hover:rotate-6 group-hover:scale-110 ${!isHex ? color : ''}`}
         style={isHex ? { backgroundColor: color, boxShadow: `0 12px 24px -8px ${color}66` } : {}}>{icon}</div>
-      <div>
-        <p className="text-[10px] font-black uppercase opacity-80 tracking-[0.15em] mb-1.5" style={{ color: themeData.colors.textBody }}>{title}</p>
-        <h3 className="text-2xl font-bold tracking-tight" style={{ color: themeData.colors.textHeading }}>{value}</h3>
+      <div className="min-w-0 flex-1 flex flex-col justify-center">
+        <p className="text-[10px] font-black uppercase opacity-80 tracking-[0.15em] mb-1.5 shrink-0" style={{ color: themeData.colors.textBody }}>{title}</p>
+        <h3 className="text-2xl font-bold tracking-tight flex items-baseline w-max gap-1" style={{ color: themeData.colors.textHeading }}>{value}</h3>
       </div>
     </div>
   );

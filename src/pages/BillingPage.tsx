@@ -184,7 +184,7 @@ const BillingPage: React.FC = () => {
 
             <div className="rounded-[2.5rem] p-8 shadow-sm text-center flex flex-col justify-center" style={{ backgroundColor: 'var(--color-card-bg)', border: '1px solid var(--color-border)' }}>
               <span className="text-[10px] font-black uppercase opacity-30 tracking-[0.2em] mb-2">Available Time</span>
-              <div className="text-4xl font-black text-[#E94057] mb-1">{userUsage?.voice_minutes_left || 0}m</div>
+              <div className="text-4xl font-black text-[#E94057] mb-1">{Number(userUsage?.voice_minutes_left || 0).toFixed(2)}m</div>
               <p className="text-xs font-bold text-gray-300 uppercase tracking-tighter">Voice Minutes Left</p>
             </div>
           </section>

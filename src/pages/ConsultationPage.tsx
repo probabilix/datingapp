@@ -9,7 +9,6 @@ import {
   ArrowUp, Loader2,
   MicOff, Volume2, AlertCircle, Clock, Lock
 } from "lucide-react";
-import Header from "../components/Header";
 import { motion, AnimatePresence } from "framer-motion";
 
 // Professional Credit Modal
@@ -369,12 +368,12 @@ const ConsultationPage: React.FC = () => {
 
   return (
     <div className="h-screen flex flex-col overflow-hidden" style={{ backgroundColor: themeData.colors.bgSoft }}>
-      <Header />
+
       <AnimatePresence>
         {showBillingModal && <CreditExhaustedModal type={modalType} navigate={navigate} onClose={() => setShowBillingModal(false)} />}
       </AnimatePresence>
 
-      <main className={`flex-grow pt-20 md:pt-28 pb-4 px-4 md:px-8 max-w-[1600px] mx-auto flex gap-6 w-full h-full relative ${isMobile ? 'flex-col' : 'flex-row'}`}>
+      <main className={`flex-grow pt-4 md:pt-8 pb-4 px-4 md:px-8 max-w-[1600px] mx-auto flex gap-6 w-full h-full relative ${isMobile ? 'flex-col' : 'flex-row'}`}>
         {!isMobile && (
           <aside className="w-72 flex flex-col space-y-4">
             <button onClick={() => navigate("/dashboard")} className="flex items-center gap-2 text-[10px] font-black uppercase opacity-69 hover:opacity-100 mb-4 transition-all cursor-pointer">
@@ -447,17 +446,17 @@ const ConsultationPage: React.FC = () => {
             </div>
           </header>
 
-          <div className="flex-1 overflow-y-auto p-6 md:p-12 no-scrollbar relative" style={{ backgroundColor: 'var(--color-card-bg)' }}>
+          <div className="flex-1 overflow-y-auto p-3 md:p-12 no-scrollbar relative" style={{ backgroundColor: 'var(--color-card-bg)' }}>
             {mode === "chat" ? (
-              <div className="space-y-6 max-w-4xl mx-auto">
+              <div className="space-y-3 md:space-y-6 max-w-4xl mx-auto">
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
-                  <div className="max-w-[85%] p-6 rounded-[2.5rem] rounded-tl-none text-sm leading-relaxed shadow-sm" style={{ backgroundColor: 'var(--color-card-bg)', border: '1px solid var(--color-border)', color: 'var(--color-text-body)' }}>
+                  <div className="max-w-[85%] p-4 md:p-6 rounded-[2.5rem] rounded-tl-none text-[13px] md:text-sm leading-relaxed shadow-sm" style={{ backgroundColor: 'var(--color-card-bg)', border: '1px solid var(--color-border)', color: 'var(--color-text-body)' }}>
                     Hey! I'm {selectedAdvisor?.name}. I've got your records open. What's the latest update in your dating world?
                   </div>
                 </motion.div>
                 {messages.map((m, i) => (
                   <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                    <p className={`max-w-[85%] p-6 rounded-[2.5rem] text-[15px] font-medium leading-relaxed shadow-sm ${m.role === "user" ? "rounded-tr-none text-white" : "rounded-tl-none"}`}
+                    <p className={`max-w-[85%] p-4 md:p-6 rounded-[2.5rem] text-[13px] md:text-[15px] font-medium leading-relaxed shadow-sm ${m.role === "user" ? "rounded-tr-none text-white" : "rounded-tl-none"}`}
                       style={m.role === "user"
                         ? { backgroundColor: '#E94057' }
                         : { backgroundColor: 'var(--color-input-solid)', border: '1px solid var(--color-border)', color: 'var(--color-text-body)' }}>{m.content}</p>
@@ -481,7 +480,7 @@ const ConsultationPage: React.FC = () => {
                       <Clock size={16} /> <span>{formatTime(callDuration)}</span>
                     </div>
                   ) : (
-                    <p className="text-[10px] font-black uppercase tracking-[0.4em] opacity-30">{usage?.voice_minutes_left?.toFixed(1)} Mins Available</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.4em] opacity-30">{Number(usage?.voice_minutes_left || 0).toFixed(2)} Mins Available</p>
                   )}
                 </div>
                 <div className="flex items-center gap-8">
@@ -500,11 +499,11 @@ const ConsultationPage: React.FC = () => {
           </div>
 
           {mode === "chat" && (
-            <footer className="p-4 md:p-8" style={{ backgroundColor: 'var(--color-card-bg)' }}>
-              <div className="max-w-4xl mx-auto flex items-end gap-3 p-2 rounded-[2rem] transition-all" style={{ backgroundColor: 'var(--color-input-solid)', border: '1px solid var(--color-border)' }}>
+            <footer className="p-3 md:p-8" style={{ backgroundColor: 'var(--color-card-bg)' }}>
+              <div className="max-w-4xl mx-auto flex items-end gap-2 md:gap-3 p-1.5 md:p-2 rounded-[2rem] transition-all" style={{ backgroundColor: 'var(--color-input-solid)', border: '1px solid var(--color-border)' }}>
                 <textarea
-                  className={`flex-1 bg-transparent px-5 py-4 outline-none text-[15px] font-medium resize-none leading-relaxed no-scrollbar`}
-                  style={{ color: 'var(--color-text-heading)', caretColor: '#E94057', minHeight: '56px', maxHeight: '140px' }}
+                  className={`flex-1 bg-transparent px-4 md:px-5 py-3 md:py-4 outline-none text-[14px] md:text-[15px] font-medium resize-none leading-relaxed no-scrollbar`}
+                  style={{ color: 'var(--color-text-heading)', caretColor: '#E94057', minHeight: '44px', maxHeight: '120px' }}
                   placeholder={isTyping ? "Advisor is thinking..." : `Consult with ${selectedAdvisor?.name}...`}
                   value={input}
                   rows={1}
