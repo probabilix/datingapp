@@ -174,6 +174,7 @@ const Footer: React.FC = () => {
                                 <li><Link to="/refund-policy" className="hover:text-[#E94057]">Refund Policy</Link></li>
                                 <li><Link to="/community-guidelines" className="hover:text-[#E94057]">Community Guidelines</Link></li>
                                 <li><Link to="/arbitration-opt-out" className="hover:text-[#E94057]">Arbitration Opt-Out</Link></li>
+                                <li><Link to="/child-safety" className="hover:text-[#E94057]">Child Safety</Link></li>
                             </ul>
                         </div>
                     </div>

@@ -23,6 +23,7 @@ import CareersPage from './pages/CareersPage';
 import ContactPage from './pages/ContactPage';
 import CookiesPage from './pages/CookiesPage';
 import PrivacyPage from './pages/PrivacyPage';
+import ChildSafetyPage from './pages/ChildSafetyPage';
 
 import TermsPage from './pages/termsPage';
 import RefundPolicyPage from './pages/RefundPolicyPage';
@@ -178,6 +179,7 @@ const App: React.FC = () => {
                         <Route path="/refund-policy" element={<RefundPolicyPage />} />
                         <Route path="/community-guidelines" element={<CommunityGuidelinesPage />} />
                         <Route path="/arbitration-opt-out" element={<ArbitrationOptOutPage />} />
+                        <Route path="/child-safety" element={<ChildSafetyPage />} />
                     </Routes>
 
                     {showButton && (
